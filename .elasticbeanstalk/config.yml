@@ -1,11 +1,11 @@
 branch-defaults:
   main:
-    environment: null
+    environment: smart-smoke-env
     group_suffix: null
 global:
-  application_name: smart-smoke-bin-backend
+  application_name: smart-smoke-bin
   branch: null
-  default_ec2_keyname: aws-eb-smart-smoke-bin-backend
+  default_ec2_keyname: aws-eb-smart-smoke-bin
   default_platform: Node.js 20 running on 64bit Amazon Linux 2023
   default_region: ap-northeast-2
   include_git_submodules: true
