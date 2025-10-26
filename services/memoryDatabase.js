@@ -7,17 +7,25 @@ const moment = require('moment');
  */
 class MemoryDatabase {
   constructor() {
-    // 장치 데이터 저장 (HashMap: device_id -> device_data)
-    this.devices = new Map();
-    
-    // 이벤트 데이터 저장 (List: 시간순 정렬)
-    this.events = [];
-    
-    // 사용 로그 저장 (HashMap: device_id -> usage_logs[])
-    this.usageLogs = new Map();
-    
-    // 초기 샘플 데이터 로드
-    this.initializeSampleData();
+    try {
+      // 장치 데이터 저장 (HashMap: device_id -> device_data)
+      this.devices = new Map();
+      
+      // 이벤트 데이터 저장 (List: 시간순 정렬)
+      this.events = [];
+      
+      // 사용 로그 저장 (HashMap: device_id -> usage_logs[])
+      this.usageLogs = new Map();
+      
+      // 초기 샘플 데이터 로드
+      this.initializeSampleData();
+    } catch (error) {
+      console.error('❌ MemoryDatabase 초기화 오류:', error.message);
+      // 기본값으로 초기화
+      this.devices = new Map();
+      this.events = [];
+      this.usageLogs = new Map();
+    }
   }
 
   // 장치 목록 조회
@@ -161,6 +169,7 @@ class MemoryDatabase {
 
   // 초기 샘플 데이터 로드
   initializeSampleData() {
+    try {
     // 샘플 장치 데이터
     const sampleDevices = [
       {
@@ -273,8 +282,12 @@ class MemoryDatabase {
       });
     });
 
-    console.log('✅ 메모리 데이터베이스 초기화 완료');
-    console.log(`📊 장치 ${this.devices.size}개, 이벤트 ${this.events.length}개 로드됨`);
+      console.log('✅ 메모리 데이터베이스 초기화 완료');
+      console.log(`📊 장치 ${this.devices.size}개, 이벤트 ${this.events.length}개 로드됨`);
+    } catch (error) {
+      console.error('❌ 샘플 데이터 초기화 오류:', error.message);
+      console.log('⚠️  빈 데이터베이스로 시작합니다.');
+    }
   }
 
   // 통계 정보 조회
