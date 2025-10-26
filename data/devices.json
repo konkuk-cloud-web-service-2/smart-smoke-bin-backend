@@ -1,0 +1,38 @@
+[
+  {
+    "device_id": "SB001",
+    "location": "강남역 1번 출구",
+    "latitude": 37.4979,
+    "longitude": 127.0276,
+    "status": "active",
+    "capacity": 100,
+    "current_level": 45
+  },
+  {
+    "device_id": "SB002",
+    "location": "홍대입구역 2번 출구",
+    "latitude": 37.5563,
+    "longitude": 126.9226,
+    "status": "active",
+    "capacity": 100,
+    "current_level": 78
+  },
+  {
+    "device_id": "SB003",
+    "location": "명동역 3번 출구",
+    "latitude": 37.5636,
+    "longitude": 126.9826,
+    "status": "maintenance",
+    "capacity": 100,
+    "current_level": 0
+  },
+  {
+    "device_id": "SB004",
+    "location": "잠실역 1번 출구",
+    "latitude": 37.5133,
+    "longitude": 127.1028,
+    "status": "offline",
+    "capacity": 100,
+    "current_level": 0
+  }
+]

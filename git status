@@ -1,0 +1,461 @@
+[1mdiff --git a/README.md b/README.md[m
+[1mindex a4dc33c..12ec26e 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -1,25 +1,247 @@[m
+ # Smart Smoke Bin Backend[m
+ [m
+[31m-Node.js Express.js와 Axios.js를 사용한 스마트 스모크 빈 백엔드 API 서버입니다.[m
+[32m+[m[32m스마트 담배꽁초 수거함을 위한 백엔드 API 서버입니다.[m
+ [m
+ ## 🚀 시작하기[m
+ [m
+ ### 설치[m
+[31m-[m
+ ```bash[m
+ npm install[m
+ ```[m
+ [m
+[31m-### 개발 서버 실행[m
+[31m-[m
+[32m+[m[32m### 실행[m
+ ```bash[m
+[32m+[m[32m# 개발 모드[m
+ npm run dev[m
+[32m+[m
+[32m+[m[32m# 프로덕션 모드[m
+[32m+[m[32mnpm start[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m서버는 기본적으로 `http://localhost:3000`에서 실행됩니다.[m
+[32m+[m
+[32m+[m[32m## 📋 API 명세서[m
+[32m+[m
+[32m+[m[32m### 기본 엔드포인트[m
+[32m+[m[32m- **서버 상태 확인**: `GET /api/ping`[m
+[32m+[m[32m- **헬스 체크**: `GET /api/health`[m
+[32m+[m
+[32m+[m[32m### 1. 이벤트 호출 API (하드웨어→서버)[m
+[32m+[m[32m**POST** `/api/smoke-bin/events`[m
+[32m+[m
+[32m+[m[32m하드웨어에서 발생하는 이벤트를 서버로 전송합니다.[m
+[32m+[m
+[32m+[m[32m**Request Body:**[m
+[32m+[m[32m```json[m
+[32m+[m[32m{[m
+[32m+[m[32m  "device_id": "SB001",[m
+[32m+[m[32m  "event_type": "drop",[m
+[32m+[m[32m  "data": {[m
+[32m+[m[32m    "sensor_data": "motion_detected"[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m**Event Types:**[m
+[32m+[m[32m- `drop`: 담배꽁초 투입[m
+[32m+[m[32m- `full`: 수거함 가득참[m
+[32m+[m[32m- `maintenance`: 유지보수 모드[m
+[32m+[m[32m- `online`: 온라인 상태[m
+[32m+[m[32m- `offline`: 오프라인 상태[m
+[32m+[m
+[32m+[m[32m**Response:**[m
+[32m+[m[32m```json[m
+[32m+[m[32m{[m
+[32m+[m[32m  "success": true,[m
+[32m+[m[32m  "message": "이벤트가 성공적으로 저장되었습니다.",[m
+[32m+[m[32m  "data": {[m
+[32m+[m[32m    "event_id": 1,[m
+[32m+[m[32m    "device_id": "SB001",[m
+[32m+[m[32m    "event_type": "drop",[m
+[32m+[m[32m    "timestamp": "2024-01-01T12:00:00.000Z"[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### 2. 장치 리스트 조회 API[m
+[32m+[m[32m**GET** `/api/smoke-bin/devices`[m
+[32m+[m
+[32m+[m[32m모든 스모크 빈 장치의 목록을 조회합니다.[m
+[32m+[m
+[32m+[m[32m**Response:**[m
+[32m+[m[32m```json[m
+[32m+[m[32m{[m
+[32m+[m[32m  "success": true,[m
+[32m+[m[32m  "message": "장치 목록을 성공적으로 조회했습니다.",[m
+[32m+[m[32m  "data": [[m
+[32m+[m[32m    {[m
+[32m+[m[32m      "device_id": "SB001",[m
+[32m+[m[32m      "location": "강남역 1번 출구",[m
+[32m+[m[32m      "latitude": 37.4979,[m
+[32m+[m[32m      "longitude": 127.0276,[m
+[32m+[m[32m      "status": "active",[m
+[32m+[m[32m      "capacity": 100,[m
+[32m+[m[32m      "current_level": 45,[m
+[32m+[m[32m      "fill_percentage": 45.0,[m
+[32m+[m[32m      "created_at": "2024-01-01T00:00:00.000Z",[m
+[32m+[m[32m      "updated_at": "2024-01-01T12:00:00.000Z"[m
+[32m+[m[32m    }[m
+[32m+[m[32m  ][m
+[32m+[m[32m}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### 3. 장치 상세 현황 조회 API[m
+[32m+[m[32m**GET** `/api/smoke-bin/devices/:device_id`[m
+[32m+[m
+[32m+[m[32m특정 장치의 상세 정보를 조회합니다.[m
+[32m+[m
+[32m+[m[32m**Response:**[m
+[32m+[m[32m```json[m
+[32m+[m[32m{[m
+[32m+[m[32m  "success": true,[m
+[32m+[m[32m  "message": "장치 상세 정보를 성공적으로 조회했습니다.",[m
+[32m+[m[32m  "data": {[m
+[32m+[m[32m    "device_id": "SB001",[m
+[32m+[m[32m    "location": "강남역 1번 출구",[m
+[32m+[m[32m    "latitude": 37.4979,[m
+[32m+[m[32m    "longitude": 127.0276,[m
+[32m+[m[32m    "status": "active",[m
+[32m+[m[32m    "capacity": 100,[m
+[32m+[m[32m    "current_level": 45,[m
+[32m+[m[32m    "fill_percentage": 45.0,[m
+[32m+[m[32m    "today_drops": 12,[m
+[32m+[m[32m    "full_history": [[m
+[32m+[m[32m      {[m
+[32m+[m[32m        "event_type": "full",[m
+[32m+[m[32m        "timestamp": "2024-01-01T10:00:00.000Z",[m
+[32m+[m[32m        "data": "{\"capacity_reached\": true}"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    ][m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### 4. 30분 사용현황 로그 조회 API[m
+[32m+[m[32m**GET** `/api/smoke-bin/devices/:device_id/usage-logs?period=24h`[m
+[32m+[m
+[32m+[m[32m특정 장치의 사용현황을 30분 단위로 조회합니다.[m
+[32m+[m
+[32m+[m[32m**Query Parameters:**[m
+[32m+[m[32m- `period`: 조회 기간 (`24h`, `7d`, `30d`)[m
+[32m+[m
+[32m+[m[32m**Response:**[m
+[32m+[m[32m```json[m
+[32m+[m[32m{[m
+[32m+[m[32m  "success": true,[m
+[32m+[m[32m  "message": "사용현황 로그를 성공적으로 조회했습니다.",[m
+[32m+[m[32m  "data": {[m
+[32m+[m[32m    "device_id": "SB001",[m
+[32m+[m[32m    "period": "24h",[m
+[32m+[m[32m    "start_time": "2024-01-01T00:00:00.000Z",[m
+[32m+[m[32m    "end_time": "2024-01-01T12:00:00.000Z",[m
+[32m+[m[32m    "logs": [[m
+[32m+[m[32m      {[m
+[32m+[m[32m        "device_id": "SB001",[m
+[32m+[m[32m        "period_start": "2024-01-01 11:30",[m
+[32m+[m[32m        "drop_count": 3,[m
+[32m+[m[32m        "full_events": 0[m
+[32m+[m[32m      }[m
+[32m+[m[32m    ][m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+ ```[m
+ [m
+[31m-### 프로덕션 서버 실행[m
+[32m+[m[32m### 5. 장치 상태 업데이트 API (관리용)[m
+[32m+[m[32m**PUT** `/api/smoke-bin/devices/:device_id/status`[m
+[32m+[m
+[32m+[m[32m장치의 상태를 업데이트합니다.[m
+[32m+[m
+[32m+[m[32m**Request Body:**[m
+[32m+[m[32m```json[m
+[32m+[m[32m{[m
+[32m+[m[32m  "status": "maintenance"[m
+[32m+[m[32m}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m**Status Values:**[m
+[32m+[m[32m- `active`: 정상 운영[m
+[32m+[m[32m- `maintenance`: 유지보수[m
+[32m+[m[32m- `offline`: 오프라인[m
+[32m+[m
+[32m+[m[32m## 🧪 테스트[m
+[32m+[m
+[32m+[m[32mAPI 테스트를 실행하려면:[m
+ [m
+ ```bash[m
+[31m-npm start[m
+[32m+[m[32m# 서버 실행 후[m
+[32m+[m[32mnode test-api.js[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## 📊 데이터베이스 스키마[m
+[32m+[m
+[32m+[m[32m### devices 테이블[m
+[32m+[m[32m- `id`: 기본키[m
+[32m+[m[32m- `device_id`: 장치 고유 ID[m
+[32m+[m[32m- `location`: 설치 위치[m
+[32m+[m[32m- `latitude`, `longitude`: GPS 좌표[m
+[32m+[m[32m- `status`: 장치 상태[m
+[32m+[m[32m- `capacity`: 최대 수용량[m
+[32m+[m[32m- `current_level`: 현재 레벨[m
+[32m+[m[32m- `created_at`, `updated_at`: 생성/수정 시간[m
+[32m+[m
+[32m+[m[32m### events 테이블[m
+[32m+[m[32m- `id`: 기본키[m
+[32m+[m[32m- `device_id`: 장치 ID (외래키)[m
+[32m+[m[32m- `event_type`: 이벤트 타입[m
+[32m+[m[32m- `timestamp`: 발생 시간[m
+[32m+[m[32m- `data`: 추가 데이터 (JSON)[m
+[32m+[m
+[32m+[m[32m### usage_logs 테이블[m
+[32m+[m[32m- `id`: 기본키[m
+[32m+[m[32m- `device_id`: 장치 ID (외래키)[m
+[32m+[m[32m- `period_start`, `period_end`: 기간[m
+[32m+[m[32m- `drop_count`: 투입 횟수[m
+[32m+[m[32m- `full_events`: 가득참 이벤트 수[m
+[32m+[m
+[32m+[m[32m## 🎯 주요 기능[m
+[32m+[m
+[32m+[m[32m1. **실시간 이벤트 처리**: 하드웨어에서 발생하는 이벤트를 실시간으로 수집[m
+[32m+[m[32m2. **장치 상태 모니터링**: 모든 장치의 현재 상태와 채움률 추적[m
+[32m+[m[32m3. **사용 패턴 분석**: 30분 단위 사용현황 로그 제공[m
+[32m+[m[32m4. **데이터 시각화 지원**: 운영자 콘솔을 위한 데이터 API 제공[m
+[32m+[m
+[32m+[m[32m## 🔧 기술 스택[m
+[32m+[m
+[32m+[m[32m- **Node.js** + **Express.js**[m
+[32m+[m[32m- **AWS S3** (클라우드 데이터 저장소)[m
+[32m+[m[32m- **Moment.js** (날짜/시간 처리)[m
+[32m+[m[32m- **CORS** (크로스 오리진 지원)[m
+[32m+[m
+[32m+[m[32m## ⚙️ 환경 설정[m
+[32m+[m
+[32m+[m[32m### AWS S3 설정[m
+[32m+[m[32m1. AWS 계정에서 S3 버킷 생성[m
+[32m+[m[32m2. IAM 사용자 생성 및 S3 권한 부여[m
+[32m+[m[32m3. `.env` 파일 생성 (env.example 참고)[m
+[32m+[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# .env 파일 예시[m
+[32m+[m[32mAWS_REGION=ap-northeast-2[m
+[32m+[m[32mAWS_ACCESS_KEY_ID=your_access_key_here[m
+[32m+[m[32mAWS_SECRET_ACCESS_KEY=your_secret_key_here[m
+[32m+[m[32mS3_BUCKET_NAME=smart-smoke-bin-data[m
+[32m+[m[32mPORT=3000[m
+ ```[m
+ [m
+[31m-서버는 기본적으로 `http://localhost:3000`에서 실행됩니다.[m
+\ No newline at end of file[m
+[32m+[m[32m### 설치 및 실행[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# 의존성 설치[m
+[32m+[m[32mnpm install[m
+[32m+[m
+[32m+[m[32m# 환경 변수 설정[m
+[32m+[m[32mcp env.example .env[m
+[32m+[m[32m# .env 파일을 편집하여 AWS 자격 증명 입력[m
+[32m+[m
+[32m+[m[32m# 서버 실행[m
+[32m+[m[32mnpm start[m
+[32m+[m[32m```[m
+\ No newline at end of file[m
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex 7dc1f9a..ad74e04 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -9,962 +9,2493 @@[m
+       "version": "1.0.0",[m
+       "license": "ISC",[m
+       "dependencies": {[m
+[32m+[m[32m        "@aws-sdk/client-s3": "^3.450.0",[m
+         "axios": "^1.6.0",[m
+         "cors": "^2.8.5",[m
+         "dotenv": "^16.3.1",[m
+[31m-        "express": "^4.18.2"[m
+[32m+[m[32m        "express": "^4.18.2",[m
+[32m+[m[32m        "moment": "^2.29.4",[m
+[32m+[m[32m        "uuid": "^9.0.1"[m
+       },[m
+       "devDependencies": {[m
+         "nodemon": "^3.0.1"[m
+       }[m
+     },[m
+[31m-    "node_modules/accepts": {[m
+[31m-      "version": "1.3.8",[m
+[31m-      "resolved": "https://registry.npmjs.org/accepts/-/accepts-1.3.8.tgz",[m
+[31m-      "integrity": "sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==",[m
+[32m+[m[32m    "node_modules/@aws-crypto/crc32": {[m
+[32m+[m[32m      "version": "5.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@aws-crypto/crc32/-/crc32-5.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg==",[m
+       "dependencies": {[m
+[31m-        "mime-types": "~2.1.34",[m
+[31m-        "negotiator": "0.6.3"[m
+[32m+[m[32m        "@aws-crypto/util": "^5.2.0",[m
+[32m+[m[32m        "@aws-sdk/types": "^3.222.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+       },[m
+       "engines": {[m
+[31m-        "node": ">= 0.6"[m
+[32m+[m[32m        "node": ">=16.0.0"[m
+       }[m
+     },[m
+[31m-    "node_modules/anymatch": {[m
+[31m-      "version": "3.1.3",[m
+[31m-      "resolved": "https://registry.npmjs.org/anymatch/-/anymatch-3.1.3.tgz",[m
+[31m-      "integrity": "sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==",[m
+[31m-      "dev": true,[m
+[32m+[m[32m    "node_modules/@aws-crypto/crc32c": {[m
+[32m+[m[32m      "version": "5.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@aws-crypto/crc32c/-/crc32c-5.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-+iWb8qaHLYKrNvGRbiYRHSdKRWhto5XlZUEBwDjYNf+ly5SVYG6zEoYIdxvf5R3zyeP16w4PLBn3rH1xc74Rag==",[m
+       "dependencies": {[m
+[31m-        "normalize-path": "^3.0.0",[m
+[31m-        "picomatch": "^2.0.4"[m
+[32m+[m[32m        "@aws-crypto/util": "^5.2.0",[m
+[32m+[m[32m        "@aws-sdk/types": "^3.222.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha1-browser": {[m
+[32m+[m[32m      "version": "5.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@aws-crypto/sha1-browser/-/sha1-browser-5.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-OH6lveCFfcDjX4dbAvCFSYUjJZjDr/3XJ3xHtjn3Oj5b9RjojQo8npoLeA/bNwkOkrSQ0wgrHzXk4tDRxGKJeg==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@aws-crypto/supports-web-crypto": "^5.2.0",[m
+[32m+[m[32m        "@aws-crypto/util": "^5.2.0",[m
+[32m+[m[32m        "@aws-sdk/types": "^3.222.0",[m
+[32m+[m[32m        "@aws-sdk/util-locate-window": "^3.0.0",[m
+[32m+[m[32m        "@smithy/util-utf8": "^2.0.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha1-browser/node_modules/@smithy/is-array-buffer": {[m
+[32m+[m[32m      "version": "2.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@smithy/is-array-buffer/-/is-array-buffer-2.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+       },[m
+       "engines": {[m
+[31m-        "node": ">= 8"[m
+[32m+[m[32m        "node": ">=14.0.0"[m
+       }[m
+     },[m
+[31m-    "node_modules/array-flatten": {[m
+[31m-      "version": "1.1.1",[m
+[31m-      "resolved": "https://registry.npmjs.org/array-flatten/-/array-flatten-1.1.1.tgz",[m
+[31m-      "integrity": "sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg=="[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha1-browser/node_modules/@smithy/util-buffer-from": {[m
+[32m+[m[32m      "version": "2.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@smithy/util-buffer-from/-/util-buffer-from-2.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-IJdWBbTcMQ6DA0gdNhh/BwrLkDR+ADW5Kr1aZmd4k3DIF6ezMV4R2NIAmT08wQJ3yUK82thHWmC/TnK/wpMMIA==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@smithy/is-array-buffer": "^2.2.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "engines": {[m
+[32m+[m[32m        "node": ">=14.0.0"[m
+[32m+[m[32m      }[m
+     },[m
+[31m-    "node_modules/asynckit": {[m
+[31m-      "version": "0.4.0",[m
+[31m-      "resolved": "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz",[m
+[31m-      "integrity": "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q=="[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha1-browser/node_modules/@smithy/util-utf8": {[m
+[32m+[m[32m      "version": "2.3.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@smithy/util-utf8/-/util-utf8-2.3.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@smithy/util-buffer-from": "^2.2.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "engines": {[m
+[32m+[m[32m        "node": ">=14.0.0"[m
+[32m+[m[32m      }[m
+     },[m
+[31m-    "node_modules/axios": {[m
+[31m-      "version": "1.12.2",[m
+[31m-      "resolved": "https://registry.npmjs.org/axios/-/axios-1.12.2.tgz",[m
+[31m-      "integrity": "sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==",[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha256-browser": {[m
+[32m+[m[32m      "version": "5.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@aws-crypto/sha256-browser/-/sha256-browser-5.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-AXfN/lGotSQwu6HNcEsIASo7kWXZ5HYWvfOmSNKDsEqC4OashTp8alTmaz+F7TC2L083SFv5RdB+qU3Vs1kZqw==",[m
+       "dependencies": {[m
+[31m-        "follow-redirects": "^1.15.6",[m
+[31m-        "form-data": "^4.0.4",[m
+[31m-        "proxy-from-env": "^1.1.0"[m
+[32m+[m[32m        "@aws-crypto/sha256-js": "^5.2.0",[m
+[32m+[m[32m        "@aws-crypto/supports-web-crypto": "^5.2.0",[m
+[32m+[m[32m        "@aws-crypto/util": "^5.2.0",[m
+[32m+[m[32m        "@aws-sdk/types": "^3.222.0",[m
+[32m+[m[32m        "@aws-sdk/util-locate-window": "^3.0.0",[m
+[32m+[m[32m        "@smithy/util-utf8": "^2.0.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha256-browser/node_modules/@smithy/is-array-buffer": {[m
+[32m+[m[32m      "version": "2.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@smithy/is-array-buffer/-/is-array-buffer-2.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "engines": {[m
+[32m+[m[32m        "node": ">=14.0.0"[m
+       }[m
+     },[m
+[31m-    "node_modules/balanced-match": {[m
+[31m-      "version": "1.0.2",[m
+[31m-      "resolved": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz",[m
+[31m-      "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==",[m
+[31m-      "dev": true[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha256-browser/node_modules/@smithy/util-buffer-from": {[m
+[32m+[m[32m      "version": "2.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@smithy/util-buffer-from/-/util-buffer-from-2.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-IJdWBbTcMQ6DA0gdNhh/BwrLkDR+ADW5Kr1aZmd4k3DIF6ezMV4R2NIAmT08wQJ3yUK82thHWmC/TnK/wpMMIA==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@smithy/is-array-buffer": "^2.2.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "engines": {[m
+[32m+[m[32m        "node": ">=14.0.0"[m
+[32m+[m[32m      }[m
+     },[m
+[31m-    "node_modules/binary-extensions": {[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha256-browser/node_modules/@smithy/util-utf8": {[m
+       "version": "2.3.0",[m
+[31m-      "resolved": "https://registry.npmjs.org/binary-extensions/-/binary-extensions-2.3.0.tgz",[m
+[31m-      "integrity": "sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==",[m
+[31m-      "dev": true,[m
+[31m-      "engines": {[m
+[31m-        "node": ">=8"[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@smithy/util-utf8/-/util-utf8-2.3.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A==",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@smithy/util-buffer-from": "^2.2.0",[m
+[32m+[m[32m        "tslib": "^2.6.2"[m
+       },[m
+[31m-      "funding": {[m
+[31m-        "url": "https://github.com/sponsors/sindresorhus"[m
+[32m+[m[32m      "engines": {[m
+[32m+[m[32m        "node": ">=14.0.0"[m
+       }[m
+     },[m
+[31m-    "node_modules/body-parser": {[m
+[31m-      "version": "1.20.3",[m
+[31m-      "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.3.tgz",[m
+[31m-      "integrity": "sha512-7rAxByjUMqQ3/bHJy7D6OGXvx/MMc4IqBn/X0fcM1QUcAItpZrBEYhWGem+tzXH90c+G01ypMcYJBO9Y30203g==",[m
+[32m+[m[32m    "node_modules/@aws-crypto/sha256-js": {[m
+[32m+[m[32m      "version": "5.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@aws-crypto/sha256-js/-/sha256-js-5.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-FFQQyu7edu4ufvIZ+OadFpHHOt+eSTBaYaki44c+akjg7qZg9oOQeLlk77F6tSYqjDAFClrHJk9tMf0HdVyOvA==",[m
+       "dependencies": {[m
+[31m-        "bytes": "3.1.2",[m
+[31m-        "content-type": "~1.0.5",[m
+[31m-        "debug": "2.6.9",[m
+[31m-        "depd": "2.0.0",[m
+[31m-        "destroy": "1.2.0",[m
+[31m-        "http-errors": "2.0.0",[m
+[31m-        "iconv-l
