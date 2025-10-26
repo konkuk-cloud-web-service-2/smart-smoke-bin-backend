@@ -49,9 +49,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // 라우터 설정
 app.use('/', indexRouter);
 app.use('/api', healthRouter);
-app.use('/api/smoke-bin', smokeBinRouter);
-app.use('/api/v1/kpi', kpiRouter);
-app.use('/api/v1/datasets', datasetsRouter);
+app.use('/', smokeBinRouter); // smokeBinRouter가 /devices 경로를 처리
+app.use('/kpi', kpiRouter);
+app.use('/datasets', datasetsRouter);
 
 // 에러 핸들러 (라우터보다 나중에 설정)
 app.use('*', notFound);

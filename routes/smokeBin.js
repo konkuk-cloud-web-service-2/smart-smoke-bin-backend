@@ -13,7 +13,8 @@ const VALID_STATUS_TYPES = ['active', 'maintenance', 'offline'];
  * 요청 유효성 검증
  */
 const validateEventRequest = (req, res, next) => {
-  const { device_id, event_type } = req.body;
+  const { device_id } = req.params;
+  const { event_type } = req.body;
 
   if (!device_id || !event_type) {
     return res.status(400).json({
@@ -83,10 +84,11 @@ const calculateFillPercentage = (currentLevel, capacity) => {
 
 /**
  * 1. 이벤트 호출 API (하드웨어->서버)
- * POST /api/smoke-bin/events
+ * POST /devices/{device_id}/events
  */
-router.post('/events', validateEventRequest, async (req, res) => {
-  const { device_id, event_type, data } = req.body;
+router.post('/devices/:device_id/events', validateEventRequest, async (req, res) => {
+  const { device_id } = req.params;
+  const { event_type, data } = req.body;
 
   try {
     // 이벤트 저장
@@ -116,7 +118,7 @@ router.post('/events', validateEventRequest, async (req, res) => {
 
 /**
  * 2. 장치 리스트 조회 API
- * GET /api/smoke-bin/devices
+ * GET /devices
  */
 router.get('/devices', async (req, res) => {
   try {
@@ -145,7 +147,7 @@ router.get('/devices', async (req, res) => {
 
 /**
  * 3. 장치 상세 현황 조회 API
- * GET /api/smoke-bin/devices/:device_id
+ * GET /devices/:device_id
  */
 router.get('/devices/:device_id', async (req, res) => {
   const { device_id } = req.params;
@@ -183,9 +185,9 @@ router.get('/devices/:device_id', async (req, res) => {
 
 /**
  * 4. 30분 사용현황 로그 조회 API
- * GET /api/smoke-bin/devices/:device_id/usage-logs
+ * GET /devices/{device_id}/series/usage
  */
-router.get('/devices/:device_id/usage-logs', async (req, res) => {
+router.get('/devices/:device_id/series/usage', async (req, res) => {
   const { device_id } = req.params;
   const { period = '24h' } = req.query; // 24h, 7d, 30d
 
