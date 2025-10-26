@@ -54,21 +54,44 @@ app.use('/api/v1/datasets', datasetsRouter);
 app.use('*', notFound);
 app.use(errorHandler);
 
-app.listen(PORT, (error) => {
-  if (error) {
-    console.error('❌ 서버 시작 실패:', error.message);
-    process.exit(1);
-  }
+// app.listen(PORT, (error) => {
+//   if (error) {
+//     console.error('❌ 서버 시작 실패:', error.message);
+//     process.exit(1);
+//   }
   
-  console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-  console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
+//   console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
+//   console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
   
-  try {
-    const stats = memoryDatabase.getStats();
-    console.log(`📊 현재 상태:`, stats);
-  } catch (error) {
-    console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
-  }
-});
+//   try {
+//     const stats = memoryDatabase.getStats();
+//     console.log(`📊 현재 상태:`, stats);
+//   } catch (error) {
+//     console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
+//   }
+// });
+const startServer = () =>
+  app.listen(PORT, (error) => {
+    if (error) {
+      console.error('❌ 서버 시작 실패:', error.message);
+      process.exit(1);
+    }
+
+    console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
+    console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
+
+    try {
+      const stats = memoryDatabase.getStats();
+      console.log(`📊 현재 상태:`, stats);
+    } catch (error) {
+      console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
+    }
+  });
+
+if (require.main === module) {
+  startServer();
+}
+
 
 module.exports = app;
+module.exports.startServer = startServer;
