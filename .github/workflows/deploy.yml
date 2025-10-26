@@ -1,0 +1,39 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+      
+      - name: 배포 패키지 생성
+        run: |
+          zip -r deploy.zip . \
+            -x '*.git*' \
+            -x '*node_modules*' \
+            -x '*.github*' \
+            -x '*data/*' \
+            -x '*database/*'
+      
+      - name: Elastic Beanstalk 배포
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: smart-smoke-bin
+          environment_name: smart-smoke-env
+          version_label: ${{ github.sha }}
+          region: ap-northeast-2
+          deployment_package: deploy.zip
+          wait_for_deployment: true
+      
+      - name: 배포 완료
+        run: echo "✅ 배포 완료! http://smart-smoke-env.ap-northeast-2.elasticbeanstalk.com"
+
