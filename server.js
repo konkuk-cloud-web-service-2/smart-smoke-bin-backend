@@ -41,57 +41,76 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
+// 미들웨어 설정
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// 라우터 설정
 app.use('/', indexRouter);
 app.use('/api', healthRouter);
 app.use('/api/smoke-bin', smokeBinRouter);
 app.use('/api/v1/kpi', kpiRouter);
 app.use('/api/v1/datasets', datasetsRouter);
 
+// 에러 핸들러 (라우터보다 나중에 설정)
 app.use('*', notFound);
 app.use(errorHandler);
 
-// app.listen(PORT, (error) => {
-//   if (error) {
-//     console.error('❌ 서버 시작 실패:', error.message);
-//     process.exit(1);
-//   }
-  
-//   console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-//   console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
-  
-//   try {
-//     const stats = memoryDatabase.getStats();
-//     console.log(`📊 현재 상태:`, stats);
-//   } catch (error) {
-//     console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
-//   }
-// });
-const startServer = () =>
-  app.listen(PORT, (error) => {
-    if (error) {
-      console.error('❌ 서버 시작 실패:', error.message);
+// 포트 체크 및 서버 시작 함수
+const checkPort = (port) => {
+  return new Promise((resolve, reject) => {
+    const net = require('net');
+    const server = net.createServer();
+    
+    server.listen(port, (err) => {
+      server.once('close', () => {
+        resolve(true);
+      });
+      server.close();
+    });
+    
+    server.on('error', () => {
+      reject(false);
+    });
+  });
+};
+
+const startServer = async () => {
+  try {
+    // 포트 사용 여부 확인
+    const isPortAvailable = await checkPort(PORT).catch(() => false);
+    
+    if (!isPortAvailable) {
+      console.error(`❌ 포트 ${PORT}가 이미 사용 중입니다.`);
+      console.log(`💡 다음 명령어로 포트를 사용하는 프로세스를 종료하세요:`);
+      console.log(`   Windows: netstat -ano | findstr :${PORT}`);
+      console.log(`   또는 다른 포트를 설정하세요 (PORT=3001 npm start)`);
       process.exit(1);
     }
 
-    console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-    console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
+    app.listen(PORT, () => {
+      console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
+      console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
+      console.log(`📍 API 엔드포인트: http://localhost:${PORT}`);
+      
+      try {
+        const stats = memoryDatabase.getStats();
+        console.log(`📊 현재 상태:`, stats);
+      } catch (error) {
+        console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
+      }
+    });
+  } catch (error) {
+    console.error('❌ 서버 시작 실패:', error.message);
+    process.exit(1);
+  }
+};
 
-    try {
-      const stats = memoryDatabase.getStats();
-      console.log(`📊 현재 상태:`, stats);
-    } catch (error) {
-      console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
-    }
-  });
-
+// 모듈로 로드될 때는 서버 시작하지 않음
 if (require.main === module) {
   startServer();
 }
-
 
 module.exports = app;
 module.exports.startServer = startServer;
