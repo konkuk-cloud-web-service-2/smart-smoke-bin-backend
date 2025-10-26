@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const s3Database = require('../services/s3Database');
+const memoryDatabase = require('../services/memoryDatabase');
 const moment = require('moment');
 
 // 1. 이벤트 호출 API (하드웨어->서버)
@@ -28,7 +28,7 @@ router.post('/events', async (req, res) => {
 
   try {
     // 이벤트 저장
-    const event = await s3Database.saveEvent({
+    const event = await memoryDatabase.saveEvent({
       device_id,
       event_type,
       data
@@ -36,9 +36,9 @@ router.post('/events', async (req, res) => {
 
     // drop 이벤트인 경우 장치 레벨 업데이트
     if (event_type === 'drop') {
-      const device = await s3Database.getDevice(device_id);
+      const device = await memoryDatabase.getDevice(device_id);
       if (device) {
-        await s3Database.saveDevice({
+        await memoryDatabase.saveDevice({
           ...device,
           current_level: Math.min(device.current_level + 1, device.capacity)
         });
@@ -47,9 +47,9 @@ router.post('/events', async (req, res) => {
 
     // full 이벤트인 경우 장치 레벨을 capacity로 설정
     if (event_type === 'full') {
-      const device = await s3Database.getDevice(device_id);
+      const device = await memoryDatabase.getDevice(device_id);
       if (device) {
-        await s3Database.saveDevice({
+        await memoryDatabase.saveDevice({
           ...device,
           current_level: device.capacity
         });
@@ -74,7 +74,7 @@ router.post('/events', async (req, res) => {
 // 2. 장치 리스트 조회 API
 router.get('/devices', async (req, res) => {
   try {
-    const devices = await s3Database.getDevices();
+    const devices = await memoryDatabase.getDevices();
     
     // fill_percentage 계산
     const devicesWithPercentage = devices.map(device => ({
@@ -103,7 +103,7 @@ router.get('/devices/:device_id', async (req, res) => {
 
   try {
     // 장치 기본 정보 조회
-    const device = await s3Database.getDevice(device_id);
+    const device = await memoryDatabase.getDevice(device_id);
     
     if (!device) {
       return res.status(404).json({
@@ -114,10 +114,10 @@ router.get('/devices/:device_id', async (req, res) => {
     }
 
     // 오늘의 투입 수 조회
-    const todayDrops = await s3Database.getTodayDrops(device_id);
+    const todayDrops = await memoryDatabase.getTodayDrops(device_id);
     
     // 가득참 이력 조회 (최근 10개)
-    const fullHistory = await s3Database.getFullHistory(device_id, 10);
+    const fullHistory = await memoryDatabase.getFullHistory(device_id, 10);
 
     res.json({
       success: true,
@@ -145,7 +145,7 @@ router.get('/devices/:device_id/usage-logs', async (req, res) => {
   const { period = '24h' } = req.query; // 24h, 7d, 30d
 
   try {
-    const logs = await s3Database.getUsageLogs(device_id, period);
+    const logs = await memoryDatabase.getUsageLogs(device_id, period);
     
     let startTime;
     const now = moment();
@@ -199,7 +199,7 @@ router.put('/devices/:device_id/status', async (req, res) => {
   }
 
   try {
-    const device = await s3Database.getDevice(device_id);
+    const device = await memoryDatabase.getDevice(device_id);
     
     if (!device) {
       return res.status(404).json({
@@ -209,7 +209,7 @@ router.put('/devices/:device_id/status', async (req, res) => {
       });
     }
 
-    const updatedDevice = await s3Database.saveDevice({
+    const updatedDevice = await memoryDatabase.saveDevice({
       ...device,
       status
     });

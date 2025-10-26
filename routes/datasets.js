@@ -1,12 +1,15 @@
 const express = require('express');
-const multer = require('multer');
+// const multer = require('multer');
+const createUploadMiddleware = require('../services/createUploadMiddleware');
 const path = require('path');
 const router = express.Router();
 
 // multer 설정 - 메모리 저장소 사용 (실제로는 S3에 업로드)
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
+// const storage = multer.memoryStorage();
+// const upload = multer({ 
+//   storage: storage,
+const upload = createUploadMiddleware({
+  fieldName: 'file',
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB 제한
   },
@@ -21,7 +24,8 @@ const upload = multer({
 });
 
 // 공공 데이터 업로드
-router.post('/', upload.single('file'), (req, res) => {
+// router.post('/', upload.single('file'), (req, res) => {
+router.post('/', upload, (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({

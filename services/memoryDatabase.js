@@ -33,6 +33,10 @@ class MemoryDatabase {
     return Array.from(this.devices.values());
   }
 
+  getDevices() {
+    return this.getAllDevices();
+  }
+
   // 특정 장치 조회
   getDevice(deviceId) {
     return this.devices.get(deviceId) || null;
