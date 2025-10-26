@@ -8,6 +8,7 @@ const indexRouter = require('./routes/index');
 const healthRouter = require('./routes/health');
 const smokeBinRouter = require('./routes/smokeBin');
 const kpiRouter = require('./routes/kpi');
+const datasetsRouter = require('./routes/datasets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.use('/', indexRouter);
 app.use('/api', healthRouter);
 app.use('/api/smoke-bin', smokeBinRouter);
 app.use('/api/v1/kpi', kpiRouter);
+app.use('/api/v1/datasets', datasetsRouter);
 
 app.use('*', notFound);
 app.use(errorHandler);
