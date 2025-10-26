@@ -18,13 +18,25 @@ npm run dev
 npm start
 ```
 
+## 🌐 배포 정보
+
+### 프로덕션 환경
+- **배포 URL**: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/
+- **배포 방식**: GitHub Actions + AWS Elastic Beanstalk
+- **자동 배포**: main 브랜치 push 시 자동 배포
+
+### 로컬 개발 환경
 서버는 기본적으로 `http://localhost:3000`에서 실행됩니다.
 
 ## 📋 API 명세서
 
 ### 기본 엔드포인트
 - **서버 상태 확인**: `GET /api/ping`
+  - 로컬: `http://localhost:3000/api/ping`
+  - 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/ping`
 - **헬스 체크**: `GET /api/health`
+  - 로컬: `http://localhost:3000/api/health`
+  - 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/health`
 
 ### 1. 이벤트 호출 API (하드웨어→서버)
 **POST** `/api/smoke-bin/events`
@@ -173,9 +185,19 @@ npm start
 API 테스트를 실행하려면:
 
 ```bash
-# 서버 실행 후
-node test-api.js
+# 로컬 서버 테스트
+npm run test:local
+
+# 프로덕션 서버 테스트
+npm run test:production
+
+# 기본 테스트 (로컬)
+npm test
 ```
+
+### 테스트 환경 설정
+- **로컬 테스트**: `TEST_ENV=local` (기본값)
+- **프로덕션 테스트**: `TEST_ENV=production`
 
 ## 📊 데이터베이스 스키마
 
@@ -240,3 +262,16 @@ cp env.example .env
 # 서버 실행
 npm start
 ```
+
+## 🚀 배포 정보
+
+### 자동 배포
+- **배포 방식**: GitHub Actions + AWS Elastic Beanstalk
+- **트리거**: main 브랜치에 push 시 자동 배포
+- **배포 URL**: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/
+
+### 배포 과정
+1. 코드를 main 브랜치에 push
+2. GitHub Actions이 자동으로 빌드 및 배포
+3. AWS Elastic Beanstalk에서 서비스 시작
+4. 배포 완료 후 URL로 접근 가능

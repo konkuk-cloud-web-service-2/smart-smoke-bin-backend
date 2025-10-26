@@ -1,6 +1,19 @@
 const axios = require('axios');
 
-const BASE_URL = 'http://localhost:3000/api/smoke-bin';
+// 환경에 따른 URL 설정
+const ENVIRONMENT = process.env.TEST_ENV || 'local';
+const BASE_URLS = {
+  local: 'http://localhost:3000/api/smoke-bin',
+  production: 'http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/smoke-bin'
+};
+
+const BASE_URL = BASE_URLS[ENVIRONMENT];
+const PING_URL = ENVIRONMENT === 'local' 
+  ? 'http://localhost:3000/api/ping'
+  : 'http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/ping';
+
+console.log(`🧪 테스트 환경: ${ENVIRONMENT}`);
+console.log(`🔗 테스트 URL: ${BASE_URL}`);
 
 // 테스트 함수들
 const testEventAPI = async () => {
@@ -104,12 +117,16 @@ const runAllTests = async () => {
 // 서버가 실행 중인지 확인 후 테스트 실행
 const checkServerAndRunTests = async () => {
   try {
-    await axios.get('http://localhost:3000/api/ping');
+    await axios.get(PING_URL);
     console.log('✅ 서버가 실행 중입니다. 테스트를 시작합니다.');
     await runAllTests();
   } catch (error) {
-    console.error('❌ 서버가 실행되지 않았습니다. 먼저 서버를 시작해주세요:');
-    console.error('   npm start 또는 npm run dev');
+    console.error('❌ 서버가 실행되지 않았습니다.');
+    if (ENVIRONMENT === 'local') {
+      console.error('   로컬 서버를 시작해주세요: npm start 또는 npm run dev');
+    } else {
+      console.error('   프로덕션 서버 상태를 확인해주세요.');
+    }
   }
 };
 
