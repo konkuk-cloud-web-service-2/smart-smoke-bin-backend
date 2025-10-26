@@ -6,7 +6,33 @@ on:
   workflow_dispatch:
 
 jobs:
+  check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+      
+      - name: Node.js 18 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: npm install 검사
+        run: npm ci
+      
+      - name: npm start 검사 (5초)
+        run: |
+          timeout 5s npm start || exit_code=$?
+          if [ $exit_code -ne 124 ] && [ $exit_code -ne 0 ]; then
+            echo "❌ 서버 시작 실패"
+            exit 1
+          fi
+          echo "✅ 서버 시작 성공"
+
   deploy:
+    name: Deploy to EB
+    needs: check
     runs-on: ubuntu-latest
     
     steps:
@@ -30,10 +56,11 @@ jobs:
           application_name: smart-smoke-bin
           environment_name: smart-smoke-env
           version_label: ${{ github.sha }}
+          version_description: ${{ github.event.head_commit.message }}
           region: ap-northeast-2
           deployment_package: deploy.zip
           wait_for_deployment: true
       
       - name: 배포 완료
-        run: echo "✅ 배포 완료! http://smart-smoke-env.ap-northeast-2.elasticbeanstalk.com"
+        run: echo "✅ 배포 완료! http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/"
 
