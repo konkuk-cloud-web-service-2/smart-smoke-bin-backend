@@ -1,4 +1,4 @@
-const s3Database = require('../../../services/s3Database');
+const memoryDatabase = require('../../../services/memoryDatabase');
 
 /**
  * 장치 관리 서비스
@@ -11,7 +11,7 @@ class DeviceService {
    */
   async getAllDevices() {
     try {
-      const devices = await s3Database.getDevices();
+      const devices = memoryDatabase.getAllDevices();
       
       // 채움률 계산하여 반환
       return devices.map(device => ({
@@ -31,17 +31,17 @@ class DeviceService {
    */
   async getDeviceById(deviceId) {
     try {
-      const device = await s3Database.getDevice(deviceId);
+      const device = await memoryDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
       }
 
       // 오늘의 투입 수 조회
-      const todayDrops = await s3Database.getTodayDrops(deviceId);
+      const todayDrops = await memoryDatabase.getTodayDrops(deviceId);
       
       // 가득참 이력 조회 (최근 10개)
-      const fullHistory = await s3Database.getFullHistory(deviceId, 10);
+      const fullHistory = await memoryDatabase.getFullHistory(deviceId, 10);
 
       return {
         ...device,
@@ -69,13 +69,13 @@ class DeviceService {
         throw new Error('유효하지 않은 상태입니다.');
       }
 
-      const device = await s3Database.getDevice(deviceId);
+      const device = await memoryDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
       }
 
-      const updatedDevice = await s3Database.saveDevice({
+      const updatedDevice = await memoryDatabase.saveDevice({
         ...device,
         status
       });
@@ -99,8 +99,8 @@ class DeviceService {
   async getDeviceStats(deviceId) {
     try {
       const device = await this.getDeviceById(deviceId);
-      const todayDrops = await s3Database.getTodayDrops(deviceId);
-      const fullHistory = await s3Database.getFullHistory(deviceId, 5);
+      const todayDrops = await memoryDatabase.getTodayDrops(deviceId);
+      const fullHistory = await memoryDatabase.getFullHistory(deviceId, 5);
 
       return {
         device_id: deviceId,

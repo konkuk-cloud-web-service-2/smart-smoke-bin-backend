@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// S3 데이터베이스 초기화 (실제 AWS S3 사용)
-const s3Database = require('./services/s3Database');
+// 메모리 데이터베이스 초기화
+const memoryDatabase = require('./services/memoryDatabase');
 
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
@@ -29,17 +29,10 @@ app.use('/api/v1/datasets', datasetsRouter);
 app.use('*', notFound);
 app.use(errorHandler);
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-  
-  // S3 샘플 데이터 초기화
-  try {
-    await s3Database.initializeSampleData();
-    console.log('✅ S3 데이터베이스 초기화 완료');
-  } catch (error) {
-    console.error('❌ S3 데이터베이스 초기화 오류:', error.message);
-    console.log('⚠️  AWS 자격 증명을 확인해주세요.');
-  }
+  console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
+  console.log(`📊 현재 상태:`, memoryDatabase.getStats());
 });
 
 module.exports = app;

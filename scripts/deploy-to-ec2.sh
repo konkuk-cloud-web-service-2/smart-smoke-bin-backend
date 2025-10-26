@@ -32,12 +32,9 @@ npm install
 # 6. 환경 변수 설정
 echo "⚙️ 환경 변수 설정 중..."
 cat > .env << EOF
-AWS_REGION=ap-southeast-2
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-S3_BUCKET_NAME=smart-smoke-bin-data
 PORT=3000
 NODE_ENV=production
+DATABASE_TYPE=memory
 EOF
 
 # 7. PM2 설치 (프로세스 관리)

@@ -1,4 +1,4 @@
-const s3Database = require('../../../services/s3Database');
+const memoryDatabase = require('../../../services/memoryDatabase');
 const moment = require('moment');
 
 /**
@@ -14,7 +14,7 @@ class AnalyticsService {
    */
   async getUsageLogs(deviceId, period = 'today') {
     try {
-      return await s3Database.getUsageLogs(deviceId, period);
+      return await memoryDatabase.getUsageLogs(deviceId, period);
     } catch (error) {
       console.error('사용현황 로그 조회 오류:', error);
       throw new Error('사용현황 로그를 조회할 수 없습니다.');
@@ -82,7 +82,7 @@ class AnalyticsService {
    */
   async getRegionalAnalysis(period = '7d') {
     try {
-      const devices = await s3Database.getDevices();
+      const devices = await memoryDatabase.getDevices();
       const regionalStats = [];
 
       for (const device of devices) {

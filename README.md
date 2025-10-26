@@ -213,24 +213,20 @@ node test-api.js
 ## 🔧 기술 스택
 
 - **Node.js** + **Express.js**
-- **AWS S3** (클라우드 데이터 저장소)
+- **메모리 데이터베이스** (HashMap/List 기반 인메모리 저장소)
 - **Moment.js** (날짜/시간 처리)
 - **CORS** (크로스 오리진 지원)
 
 ## ⚙️ 환경 설정
 
-### AWS S3 설정
-1. AWS 계정에서 S3 버킷 생성
-2. IAM 사용자 생성 및 S3 권한 부여
-3. `.env` 파일 생성 (env.example 참고)
+### 메모리 데이터베이스 설정
+현재 프로젝트는 메모리 기반 데이터베이스를 사용합니다. 별도의 데이터베이스 설정이 필요하지 않습니다.
 
 ```bash
 # .env 파일 예시
-AWS_REGION=ap-northeast-2
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-S3_BUCKET_NAME=smart-smoke-bin-data
 PORT=3000
+NODE_ENV=development
+DATABASE_TYPE=memory
 ```
 
 ### 설치 및 실행
@@ -238,9 +234,8 @@ PORT=3000
 # 의존성 설치
 npm install
 
-# 환경 변수 설정
+# 환경 변수 설정 (선택사항)
 cp env.example .env
-# .env 파일을 편집하여 AWS 자격 증명 입력
 
 # 서버 실행
 npm start
