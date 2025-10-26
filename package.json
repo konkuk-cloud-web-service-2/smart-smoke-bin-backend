@@ -20,14 +20,11 @@
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-<<<<<<< HEAD
+    "express": "^4.18.2",
     "moment": "^2.29.4",
+    "multer": "^2.0.2",
     "@aws-sdk/client-s3": "^3.450.0",
     "uuid": "^9.0.1"
-=======
-    "express": "^4.18.2",
-    "multer": "^2.0.2"
->>>>>>> ba17eddc2dad67d83fad252673e514e0ea61028a
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

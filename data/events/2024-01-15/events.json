@@ -1,0 +1,82 @@
+[
+  {
+    "id": "evt_001",
+    "device_id": "SB001",
+    "event_type": "drop",
+    "timestamp": "2024-01-15T08:30:00.000Z",
+    "data": {
+      "sensor_data": "motion_detected",
+      "weight_change": 0.5
+    }
+  },
+  {
+    "id": "evt_002",
+    "device_id": "SB001",
+    "event_type": "drop",
+    "timestamp": "2024-01-15T09:15:00.000Z",
+    "data": {
+      "sensor_data": "motion_detected",
+      "weight_change": 0.3
+    }
+  },
+  {
+    "id": "evt_003",
+    "device_id": "SB002",
+    "event_type": "drop",
+    "timestamp": "2024-01-15T10:45:00.000Z",
+    "data": {
+      "sensor_data": "motion_detected",
+      "weight_change": 0.4
+    }
+  },
+  {
+    "id": "evt_004",
+    "device_id": "SB001",
+    "event_type": "full",
+    "timestamp": "2024-01-15T11:20:00.000Z",
+    "data": {
+      "capacity_reached": true,
+      "current_level": 100
+    }
+  },
+  {
+    "id": "evt_005",
+    "device_id": "SB003",
+    "event_type": "maintenance",
+    "timestamp": "2024-01-15T12:00:00.000Z",
+    "data": {
+      "maintenance_type": "scheduled",
+      "technician": "김기술"
+    }
+  },
+  {
+    "id": "evt_006",
+    "device_id": "SB005",
+    "event_type": "drop",
+    "timestamp": "2024-01-15T13:30:00.000Z",
+    "data": {
+      "sensor_data": "motion_detected",
+      "weight_change": 0.6
+    }
+  },
+  {
+    "id": "evt_007",
+    "device_id": "SB002",
+    "event_type": "drop",
+    "timestamp": "2024-01-15T14:15:00.000Z",
+    "data": {
+      "sensor_data": "motion_detected",
+      "weight_change": 0.4
+    }
+  },
+  {
+    "id": "evt_008",
+    "device_id": "SB004",
+    "event_type": "offline",
+    "timestamp": "2024-01-15T15:00:00.000Z",
+    "data": {
+      "reason": "network_disconnected",
+      "last_seen": "2024-01-15T14:45:00.000Z"
+    }
+  }
+]

@@ -6,7 +6,10 @@
     "longitude": 127.0276,
     "status": "active",
     "capacity": 100,
-    "current_level": 45
+    "current_level": 45,
+    "fill_percentage": 45.0,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T12:00:00.000Z"
   },
   {
     "device_id": "SB002",
@@ -15,7 +18,10 @@
     "longitude": 126.9226,
     "status": "active",
     "capacity": 100,
-    "current_level": 78
+    "current_level": 78,
+    "fill_percentage": 78.0,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T12:00:00.000Z"
   },
   {
     "device_id": "SB003",
@@ -24,7 +30,10 @@
     "longitude": 126.9826,
     "status": "maintenance",
     "capacity": 100,
-    "current_level": 0
+    "current_level": 0,
+    "fill_percentage": 0.0,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T12:00:00.000Z"
   },
   {
     "device_id": "SB004",
@@ -33,6 +42,21 @@
     "longitude": 127.1028,
     "status": "offline",
     "capacity": 100,
-    "current_level": 0
+    "current_level": 0,
+    "fill_percentage": 0.0,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T12:00:00.000Z"
+  },
+  {
+    "device_id": "SB005",
+    "location": "신촌역 1번 출구",
+    "latitude": 37.5551,
+    "longitude": 126.9368,
+    "status": "active",
+    "capacity": 100,
+    "current_level": 32,
+    "fill_percentage": 32.0,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T12:00:00.000Z"
   }
 ]
