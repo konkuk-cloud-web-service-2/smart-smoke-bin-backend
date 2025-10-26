@@ -56,10 +56,11 @@ jobs:
           application_name: smart-smoke-bin
           environment_name: smart-smoke-env
           version_label: ${{ github.sha }}
+          version_description: ${{ github.event.head_commit.message }}
           region: ap-northeast-2
           deployment_package: deploy.zip
           wait_for_deployment: true
       
       - name: 배포 완료
-        run: echo "✅ 배포 완료! http://smart-smoke-env.ap-northeast-2.elasticbeanstalk.com"
+        run: echo "✅ 배포 완료! http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/"
 
