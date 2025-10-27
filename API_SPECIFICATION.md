@@ -5,7 +5,8 @@
 
 ## Base URL
 ```
-http://localhost:3000/api/smoke-bin
+로컬 환경: http://localhost:3000/api/smoke-bin
+AWS EB 환경: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/smoke-bin
 ```
 
 ---
@@ -14,6 +15,12 @@ http://localhost:3000/api/smoke-bin
 
 ### GET /dashboard/overview
 개요 페이지용 통합 대시보드 데이터를 조회합니다.
+
+**요청 예시:**
+```
+로컬: GET http://localhost:3000/api/smoke-bin/dashboard/overview
+AWS:  GET http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/smoke-bin/dashboard/overview
+```
 
 **응답 예시:**
 ```json
