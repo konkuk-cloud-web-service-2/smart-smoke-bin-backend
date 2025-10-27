@@ -45,7 +45,7 @@ const testUsagePatternAPI = () => {
   const options = {
     hostname: 'localhost',
     port: 3000,
-    path: '/api/smoke-bin/devices/SB-001/usage-pattern?period=7d',
+    path: '/api/smoke-bin/analytics/usage-pattern?period=7d',
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'

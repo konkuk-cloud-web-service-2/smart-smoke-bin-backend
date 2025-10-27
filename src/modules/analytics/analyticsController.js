@@ -198,6 +198,31 @@ class AnalyticsController {
   }
 
   /**
+   * 전체 장치들의 시간대별 사용 패턴 분석 (3시간 텀)
+   * GET /api/smoke-bin/analytics/all-devices-time-pattern
+   */
+  async getAllDevicesTimePattern(req, res) {
+    try {
+      const { period = '7d' } = req.query;
+      
+      const pattern = await analyticsService.getAllDevicesTimePattern(period);
+      
+      res.json({
+        success: true,
+        message: '전체 장치의 시간대별 사용 패턴을 성공적으로 조회했습니다.',
+        data: pattern
+      });
+    } catch (error) {
+      console.error('전체 장치 시간대별 패턴 분석 오류:', error);
+      res.status(500).json({
+        success: false,
+        message: '전체 장치의 시간대별 사용 패턴 분석 중 오류가 발생했습니다.',
+        error: 'ALL_DEVICES_TIME_PATTERN_ERROR'
+      });
+    }
+  }
+
+  /**
    * 주요 인사이트 조회
    * GET /api/smoke-bin/analytics/insights
    */

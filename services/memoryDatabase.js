@@ -144,6 +144,25 @@ class MemoryDatabase {
       .slice(0, limit);
   }
 
+  /**
+   * 이벤트 추가
+   * @param {Object} eventData - 이벤트 데이터
+   * @returns {Object} 추가된 이벤트
+   */
+  addEvent(eventData) {
+    const event = {
+      id: uuidv4(),
+      device_id: eventData.device_id,
+      event_type: eventData.event_type,
+      data: eventData.data,
+      timestamp: eventData.timestamp || new Date().toISOString(),
+      created_at: new Date().toISOString()
+    };
+    
+    this.events.push(event);
+    return event;
+  }
+
   // ==================== Usage Log 관련 메서드 ====================
 
   /**

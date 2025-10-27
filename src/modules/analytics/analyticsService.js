@@ -412,6 +412,144 @@ class AnalyticsService {
   }
 
   /**
+   * 전체 장치들의 시간대별 사용 패턴 분석 (3시간 텀)
+   * @param {string} period - 기간 (today, 24h, 7d, 30d)
+   * @returns {Promise<Object>} 전체 장치 시간대별 패턴
+   */
+  async getAllDevicesTimePattern(period = '7d') {
+    try {
+      const devices = await memoryDatabase.getDevices();
+      
+      // 3시간 텀으로 그룹화 (00, 03, 06, 09, 12, 15, 18, 21)
+      const timeSlotStats = {};
+      const timeSlots = [0, 3, 6, 9, 12, 15, 18, 21];
+      
+      // 초기화
+      timeSlots.forEach(slot => {
+        timeSlotStats[slot] = { 
+          time_slot: slot, 
+          total_drops: 0, 
+          total_full_events: 0,
+          device_count: 0,
+          label: `${slot.toString().padStart(2, '0')}:00-${(slot + 3).toString().padStart(2, '0')}:00`
+        };
+      });
+      
+      // 모든 장치의 데이터를 집계
+      for (const device of devices) {
+        try {
+          const logs = await this.getUsageLogs(device.device_id, period);
+          
+          logs.forEach(log => {
+            const hour = moment(log.period_start).hour();
+            // 시간을 3시간 텀으로 매핑
+            let timeSlot;
+            if (hour >= 0 && hour < 3) timeSlot = 0;
+            else if (hour >= 3 && hour < 6) timeSlot = 3;
+            else if (hour >= 6 && hour < 9) timeSlot = 6;
+            else if (hour >= 9 && hour < 12) timeSlot = 9;
+            else if (hour >= 12 && hour < 15) timeSlot = 12;
+            else if (hour >= 15 && hour < 18) timeSlot = 15;
+            else if (hour >= 18 && hour < 21) timeSlot = 18;
+            else timeSlot = 21;
+            
+            timeSlotStats[timeSlot].total_drops += log.drop_count;
+            timeSlotStats[timeSlot].total_full_events += log.full_events;
+            timeSlotStats[timeSlot].device_count += 1;
+          });
+        } catch (error) {
+          console.warn(`장치 ${device.device_id}의 데이터 조회 실패:`, error.message);
+          // 개별 장치 오류는 무시하고 계속 진행
+        }
+      }
+
+      // 시간대별 평균 계산
+      Object.values(timeSlotStats).forEach(stat => {
+        if (stat.device_count > 0) {
+          stat.avg_drops_per_device = Math.round((stat.total_drops / stat.device_count) * 10) / 10;
+          stat.avg_full_events_per_device = Math.round((stat.total_full_events / stat.device_count) * 10) / 10;
+        } else {
+          stat.avg_drops_per_device = 0;
+          stat.avg_full_events_per_device = 0;
+        }
+      });
+
+      const timePattern = Object.values(timeSlotStats).sort((a, b) => a.time_slot - b.time_slot);
+      const totalDrops = timePattern.reduce((sum, stat) => sum + stat.total_drops, 0);
+      const peakTimeSlot = this._findPeakTimeSlotForAllDevices(timeSlotStats);
+
+      return {
+        period,
+        total_devices: devices.length,
+        time_pattern: timePattern,
+        peak_time_slot: peakTimeSlot,
+        total_drops: totalDrops,
+        summary: {
+          most_active_time: peakTimeSlot,
+          least_active_time: this._findLeastActiveTimeSlot(timeSlotStats),
+          peak_drops: Math.max(...timePattern.map(stat => stat.total_drops)),
+          total_periods: timePattern.length
+        }
+      };
+    } catch (error) {
+      console.error('전체 장치 시간대별 패턴 분석 오류:', error);
+      throw new Error('전체 장치의 시간대별 사용 패턴을 분석할 수 없습니다.');
+    }
+  }
+
+  /**
+   * 전체 장치 중 피크 시간 슬롯 찾기
+   * @param {Object} timeSlotStats - 시간 슬롯별 통계
+   * @returns {Object} 피크 시간 슬롯 정보
+   */
+  _findPeakTimeSlotForAllDevices(timeSlotStats) {
+    let peakTimeSlot = 0;
+    let maxDrops = 0;
+    
+    Object.values(timeSlotStats).forEach(stat => {
+      if (stat.total_drops > maxDrops) {
+        maxDrops = stat.total_drops;
+        peakTimeSlot = stat.time_slot;
+      }
+    });
+    
+    const peakStat = timeSlotStats[peakTimeSlot];
+    return {
+      time_slot: peakTimeSlot,
+      label: peakStat.label,
+      total_drops: peakStat.total_drops,
+      device_count: peakStat.device_count,
+      avg_drops_per_device: peakStat.avg_drops_per_device
+    };
+  }
+
+  /**
+   * 가장 활동이 적은 시간 슬롯 찾기
+   * @param {Object} timeSlotStats - 시간 슬롯별 통계
+   * @returns {Object} 최소 활동 시간 슬롯 정보
+   */
+  _findLeastActiveTimeSlot(timeSlotStats) {
+    let leastActiveTimeSlot = 0;
+    let minDrops = Infinity;
+    
+    Object.values(timeSlotStats).forEach(stat => {
+      if (stat.total_drops < minDrops) {
+        minDrops = stat.total_drops;
+        leastActiveTimeSlot = stat.time_slot;
+      }
+    });
+    
+    const leastStat = timeSlotStats[leastActiveTimeSlot];
+    return {
+      time_slot: leastActiveTimeSlot,
+      label: leastStat.label,
+      total_drops: leastStat.total_drops,
+      device_count: leastStat.device_count,
+      avg_drops_per_device: leastStat.avg_drops_per_device
+    };
+  }
+
+  /**
    * 주요 인사이트 조회
    * @returns {Promise<Array>} 인사이트 데이터
    */

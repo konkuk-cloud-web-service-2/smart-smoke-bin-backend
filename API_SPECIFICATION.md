@@ -85,7 +85,7 @@ http://localhost:3000/api/smoke-bin
 
 ## 2. 시간대별 사용 패턴 분석
 
-### GET /devices/:device_id/usage-pattern
+### GET /analytics/usage-pattern
 특정 장치의 시간대별 사용 패턴을 3시간 텀으로 분석합니다.
 
 **경로 매개변수:**
