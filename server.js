@@ -14,13 +14,15 @@ try {
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 // 라우터 로드
-let indexRouter, healthRouter, smokeBinRouter, kpiRouter, datasetsRouter;
+let indexRouter, healthRouter, smokeBinRouter, kpiRouter, datasetsRouter, analyticsRouter, deviceRouter;
 try {
   indexRouter = require('./routes/index');
   healthRouter = require('./routes/health');
   smokeBinRouter = require('./routes/smokeBin');
   kpiRouter = require('./routes/kpi');
   datasetsRouter = require('./routes/datasets');
+  analyticsRouter = require('./src/routes/analyticsRoutes');
+  deviceRouter = require('./src/routes/deviceRoutes');
 } catch (error) {
   console.error('❌ 라우터 로드 실패:', error.message);
   process.exit(1);
@@ -52,6 +54,8 @@ app.use('/api', healthRouter);
 app.use('/', smokeBinRouter); // smokeBinRouter가 /devices 경로를 처리
 app.use('/kpi', kpiRouter);
 app.use('/datasets', datasetsRouter);
+app.use('/api/smoke-bin', analyticsRouter); // analytics 라우터 추가
+app.use('/api/smoke-bin/devices', deviceRouter); // device 라우터 추가
 
 // 에러 핸들러 (라우터보다 나중에 설정)
 app.use('*', notFound);

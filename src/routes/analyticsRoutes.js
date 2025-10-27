@@ -26,4 +26,10 @@ router.get('/devices/:device_id/weekly-usage', analyticsController.getWeeklyUsag
 // 일 평균 수거량 조회
 router.get('/devices/:device_id/daily-average', analyticsController.getDailyAverage);
 
+// 개요 페이지용 통합 대시보드 데이터
+router.get('/dashboard/overview', analyticsController.getDashboardOverview);
+
+// 주요 인사이트 조회
+router.get('/analytics/insights', analyticsController.getInsights);
+
 module.exports = router;

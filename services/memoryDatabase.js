@@ -316,10 +316,10 @@ class MemoryDatabase {
         location: '명동역 3번 출구',
         latitude: 37.5636,
         longitude: 126.9826,
-        status: 'maintenance',
+        status: 'full',
         capacity: 100,
-        current_level: 0,
-        fill_percentage: 0.0
+        current_level: 80,
+        fill_percentage: 80.0
       },
       {
         device_id: 'SB004',

@@ -144,6 +144,113 @@ class DeviceController {
       });
     }
   }
+
+  /**
+   * 꽁초 투입 시뮬레이션
+   * POST /api/smoke-bin/devices/:device_id/simulate/drop
+   */
+  async simulateDrop(req, res) {
+    try {
+      const { device_id } = req.params;
+      const result = await deviceService.simulateDrop(device_id);
+      
+      res.json({
+        success: true,
+        message: '꽁초 투입 시뮬레이션이 성공적으로 실행되었습니다.',
+        data: result
+      });
+    } catch (error) {
+      console.error('꽁초 투입 시뮬레이션 오류:', error);
+      
+      if (error.message === '해당 장치를 찾을 수 없습니다.') {
+        return res.status(404).json({
+          success: false,
+          message: error.message,
+          error: 'DEVICE_NOT_FOUND'
+        });
+      }
+      
+      if (error.message === '오프라인 상태의 장치입니다.') {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+          error: 'DEVICE_OFFLINE'
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: '꽁초 투입 시뮬레이션 중 오류가 발생했습니다.',
+        error: 'SIMULATE_DROP_ERROR'
+      });
+    }
+  }
+
+  /**
+   * 장치 초기화 시뮬레이션
+   * POST /api/smoke-bin/devices/:device_id/simulate/reset
+   */
+  async simulateReset(req, res) {
+    try {
+      const { device_id } = req.params;
+      const result = await deviceService.simulateReset(device_id);
+      
+      res.json({
+        success: true,
+        message: '장치 초기화 시뮬레이션이 성공적으로 실행되었습니다.',
+        data: result
+      });
+    } catch (error) {
+      console.error('장치 초기화 시뮬레이션 오류:', error);
+      
+      if (error.message === '해당 장치를 찾을 수 없습니다.') {
+        return res.status(404).json({
+          success: false,
+          message: error.message,
+          error: 'DEVICE_NOT_FOUND'
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: '장치 초기화 시뮬레이션 중 오류가 발생했습니다.',
+        error: 'SIMULATE_RESET_ERROR'
+      });
+    }
+  }
+
+  /**
+   * 포화 상태 설정 시뮬레이션
+   * POST /api/smoke-bin/devices/:device_id/simulate/full
+   */
+  async simulateFull(req, res) {
+    try {
+      const { device_id } = req.params;
+      const result = await deviceService.simulateFull(device_id);
+      
+      res.json({
+        success: true,
+        message: '포화 상태 설정 시뮬레이션이 성공적으로 실행되었습니다.',
+        data: result
+      });
+    } catch (error) {
+      console.error('포화 상태 설정 시뮬레이션 오류:', error);
+      
+      if (error.message === '해당 장치를 찾을 수 없습니다.') {
+        return res.status(404).json({
+          success: false,
+          message: error.message,
+          error: 'DEVICE_NOT_FOUND'
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: '포화 상태 설정 시뮬레이션 중 오류가 발생했습니다.',
+        error: 'SIMULATE_FULL_ERROR'
+      });
+    }
+  }
 }
 
 module.exports = new DeviceController();

@@ -22,7 +22,7 @@ class AnalyticsService {
   }
 
   /**
-   * 시간대별 사용 패턴 분석
+   * 시간대별 사용 패턴 분석 (3시간 텀)
    * @param {string} deviceId - 장치 ID
    * @param {string} period - 기간
    * @returns {Promise<Object>} 시간대별 패턴
@@ -31,24 +31,43 @@ class AnalyticsService {
     try {
       const logs = await this.getUsageLogs(deviceId, period);
       
-      // 시간대별 그룹화
-      const hourlyStats = {};
+      // 3시간 텀으로 그룹화 (00, 03, 06, 09, 12, 15, 18, 21)
+      const timeSlotStats = {};
+      const timeSlots = [0, 3, 6, 9, 12, 15, 18, 21];
+      
+      // 초기화
+      timeSlots.forEach(slot => {
+        timeSlotStats[slot] = { 
+          time_slot: slot, 
+          drop_count: 0, 
+          full_events: 0,
+          label: `${slot.toString().padStart(2, '0')}`
+        };
+      });
       
       logs.forEach(log => {
         const hour = moment(log.period_start).hour();
-        if (!hourlyStats[hour]) {
-          hourlyStats[hour] = { hour, drop_count: 0, full_events: 0 };
-        }
-        hourlyStats[hour].drop_count += log.drop_count;
-        hourlyStats[hour].full_events += log.full_events;
+        // 시간을 3시간 텀으로 매핑
+        let timeSlot;
+        if (hour >= 0 && hour < 3) timeSlot = 0;
+        else if (hour >= 3 && hour < 6) timeSlot = 3;
+        else if (hour >= 6 && hour < 9) timeSlot = 6;
+        else if (hour >= 9 && hour < 12) timeSlot = 9;
+        else if (hour >= 12 && hour < 15) timeSlot = 12;
+        else if (hour >= 15 && hour < 18) timeSlot = 15;
+        else if (hour >= 18 && hour < 21) timeSlot = 18;
+        else timeSlot = 21;
+        
+        timeSlotStats[timeSlot].drop_count += log.drop_count;
+        timeSlotStats[timeSlot].full_events += log.full_events;
       });
 
       return {
         device_id: deviceId,
         period,
-        hourly_pattern: Object.values(hourlyStats).sort((a, b) => a.hour - b.hour),
-        peak_hour: this._findPeakHour(hourlyStats),
-        total_drops: Object.values(hourlyStats).reduce((sum, stat) => sum + stat.drop_count, 0)
+        time_pattern: Object.values(timeSlotStats).sort((a, b) => a.time_slot - b.time_slot),
+        peak_time_slot: this._findPeakTimeSlot(timeSlotStats),
+        total_drops: Object.values(timeSlotStats).reduce((sum, stat) => sum + stat.drop_count, 0)
       };
     } catch (error) {
       console.error('시간대별 패턴 분석 오류:', error);
@@ -57,54 +76,231 @@ class AnalyticsService {
   }
 
   /**
-   * 피크 시간 찾기
-   * @param {Object} hourlyStats - 시간대별 통계
-   * @returns {number} 피크 시간
+   * 피크 시간 슬롯 찾기
+   * @param {Object} timeSlotStats - 시간 슬롯별 통계
+   * @returns {number} 피크 시간 슬롯
    */
-  _findPeakHour(hourlyStats) {
-    let peakHour = 0;
+  _findPeakTimeSlot(timeSlotStats) {
+    let peakTimeSlot = 0;
     let maxDrops = 0;
     
-    Object.values(hourlyStats).forEach(stat => {
+    Object.values(timeSlotStats).forEach(stat => {
       if (stat.drop_count > maxDrops) {
         maxDrops = stat.drop_count;
-        peakHour = stat.hour;
+        peakTimeSlot = stat.time_slot;
       }
     });
     
-    return peakHour;
+    return peakTimeSlot;
   }
 
   /**
-   * 지역별 수거량 분석
+   * 지역별 수거량 분석 (구 단위)
    * @param {string} period - 기간
    * @returns {Promise<Array>} 지역별 통계
    */
   async getRegionalAnalysis(period = '7d') {
     try {
       const devices = await memoryDatabase.getDevices();
-      const regionalStats = [];
+      const districtStats = {};
 
+      // 구별로 그룹화
       for (const device of devices) {
         const logs = await this.getUsageLogs(device.device_id, period);
         const totalDrops = logs.reduce((sum, log) => sum + log.drop_count, 0);
         
-        regionalStats.push({
+        // 위치에서 구 추출 (예: "강남역 2번 출구" -> "강남구")
+        const district = this._extractDistrict(device.location);
+        
+        if (!districtStats[district]) {
+          districtStats[district] = {
+            district_name: district,
+            total_drops: 0,
+            device_count: 0,
+            devices: []
+          };
+        }
+        
+        districtStats[district].total_drops += totalDrops;
+        districtStats[district].device_count += 1;
+        districtStats[district].devices.push({
           device_id: device.device_id,
           location: device.location,
-          latitude: device.latitude,
-          longitude: device.longitude,
-          total_drops: totalDrops,
-          avg_daily_drops: Math.round(totalDrops / 7 * 10) / 10,
+          drops: totalDrops,
           status: device.status
         });
       }
+
+      // 구별 통계를 배열로 변환하고 정렬
+      const regionalStats = Object.values(districtStats).map(district => ({
+        district_name: district.district_name,
+        total_drops: district.total_drops,
+        device_count: district.device_count,
+        avg_drops_per_device: Math.round(district.total_drops / district.device_count * 10) / 10,
+        devices: district.devices
+      }));
 
       return regionalStats.sort((a, b) => b.total_drops - a.total_drops);
     } catch (error) {
       console.error('지역별 분석 오류:', error);
       throw new Error('지역별 수거량을 분석할 수 없습니다.');
     }
+  }
+
+  /**
+   * 위치에서 구 추출
+   * @param {string} location - 위치 정보
+   * @returns {string} 구 이름
+   */
+  _extractDistrict(location) {
+    // 위치 정보에서 구 추출 로직
+    const districtMap = {
+      '강남역': '강남구',
+      '역삼역': '강남구',
+      '서초역': '서초구',
+      '송파역': '송파구',
+      '마포역': '마포구',
+      '용산역': '용산구'
+    };
+
+    // 기본값은 강남구
+    let district = '강남구';
+    
+    for (const [key, value] of Object.entries(districtMap)) {
+      if (location.includes(key)) {
+        district = value;
+        break;
+      }
+    }
+    
+    return district;
+  }
+
+  /**
+   * 더미 메트릭 데이터 생성
+   * @returns {Object} 더미 메트릭 데이터
+   */
+  _generateDummyMetrics() {
+    // 프로토타입 이미지에 맞는 더미 데이터
+    return {
+      complaint_reduction_rate: {
+        current: 42.3,
+        previous_month: 29.8,
+        change: 12.5,
+        trend: 'increasing'
+      },
+      device_utilization_rate: {
+        current: 87.2,
+        average: 81.9,
+        change: 5.3,
+        trend: 'increasing'
+      },
+      // 시간대별 사용 패턴 더미 데이터 (3시간 텀 순서: 00, 03, 06, 09, 12, 15, 18, 21)
+      time_pattern_dummy: [45, 23, 67, 189, 312, 267, 234, 156],
+      // 지역별 수거량 더미 데이터 (강남구, 서초구, 송파구, 마포구, 용산구)
+      regional_dummy: [4234, 3891, 3456, 2987, 2654]
+    };
+  }
+
+  /**
+   * 지역별 더미 데이터 생성
+   * @param {Array} regionalDummy - 지역별 수거량 더미 데이터
+   * @returns {Array} 지역별 통계 데이터
+   */
+  _generateRegionalDummyData(regionalDummy) {
+    const districtNames = ['강남구', '서초구', '송파구', '마포구', '용산구'];
+    
+    return regionalDummy.map((drops, index) => ({
+      district_name: districtNames[index],
+      total_drops: drops,
+      device_count: Math.floor(Math.random() * 5) + 3, // 3-7개 장치
+      avg_drops_per_device: Math.round(drops / (Math.floor(Math.random() * 5) + 3) * 10) / 10,
+      devices: []
+    })).sort((a, b) => b.total_drops - a.total_drops);
+  }
+
+  /**
+   * 주요 인사이트 더미 데이터 생성
+   * @returns {Array} 인사이트 데이터
+   */
+  _generateInsightsData() {
+    return [
+      {
+        id: 1,
+        type: "usage_pattern",
+        title: "점심시간 사용량 급증",
+        description: "12-14시 사이 평균 대비 2.3배 높은 사용률을 보입니다",
+        severity: "info",
+        impact: "high",
+        recommendation: "점심시간대 추가 수거 빈도 고려 필요",
+        data: {
+          peak_hours: "12-14시",
+          multiplier: 2.3,
+          average_usage: 156,
+          peak_usage: 312
+        }
+      },
+      {
+        id: 2,
+        type: "capacity_management",
+        title: "강남구 추가 설치 필요",
+        description: "강남구의 포화율이 다른 지역 대비 1.8배 높습니다",
+        severity: "warning",
+        impact: "medium",
+        recommendation: "강남구 내 추가 스마트 빈 설치 검토",
+        data: {
+          district: "강남구",
+          saturation_rate: 1.8,
+          current_devices: 5,
+          recommended_devices: 8
+        }
+      },
+      {
+        id: 3,
+        type: "effectiveness",
+        title: "민원 감소 효과 확인",
+        description: "스마트 빈 설치 후 해당 지역 민원이 42% 감소했습니다",
+        severity: "success",
+        impact: "high",
+        recommendation: "다른 지역으로 확산 검토",
+        data: {
+          complaint_reduction: 42.3,
+          before_installation: 156,
+          after_installation: 90,
+          period: "3개월"
+        }
+      },
+      {
+        id: 4,
+        type: "maintenance",
+        title: "예방적 유지보수 필요",
+        description: "SB003 장치의 포화 빈도가 평균 대비 1.5배 높습니다",
+        severity: "warning",
+        impact: "medium",
+        recommendation: "해당 장치 점검 및 용량 확대 검토",
+        data: {
+          device_id: "SB003",
+          full_frequency: 1.5,
+          average_full_events: 2.3,
+          device_full_events: 3.5
+        }
+      },
+      {
+        id: 5,
+        type: "efficiency",
+        title: "수거 효율성 개선",
+        description: "주간 수거량이 전주 대비 15% 증가했습니다",
+        severity: "success",
+        impact: "medium",
+        recommendation: "현재 운영 방식 유지 및 모니터링 강화",
+        data: {
+          weekly_growth: 15.0,
+          previous_week: 1200,
+          current_week: 1380,
+          trend: "increasing"
+        }
+      }
+    ];
   }
 
   /**
@@ -153,6 +349,78 @@ class AnalyticsService {
     } catch (error) {
       console.error('일 평균 수거량 계산 오류:', error);
       throw new Error('일 평균 수거량을 계산할 수 없습니다.');
+    }
+  }
+
+  /**
+   * 개요 페이지용 통합 대시보드 데이터
+   * @returns {Promise<Object>} 대시보드 데이터
+   */
+  async getDashboardOverview() {
+    try {
+      const devices = await memoryDatabase.getDevices();
+      
+      // 더미 데이터 생성
+      const dummyData = this._generateDummyMetrics();
+      
+      // 전체 장치의 시간대별 사용 패턴 (3시간 텀) - 더미 데이터 사용
+      const allDevicesTimePattern = {};
+      const timeSlots = [0, 3, 6, 9, 12, 15, 18, 21];
+      
+      // 더미 데이터로 초기화
+      timeSlots.forEach((slot, index) => {
+        allDevicesTimePattern[slot] = { 
+          time_slot: slot, 
+          count: dummyData.time_pattern_dummy[index],
+          label: `${slot.toString().padStart(2, '0')}`
+        };
+      });
+
+      // 지역별 수거량 (구 단위) - 더미 데이터 사용
+      const regionalData = this._generateRegionalDummyData(dummyData.regional_dummy);
+
+      // 전체 통계
+      const totalDrops = Object.values(allDevicesTimePattern).reduce((sum, stat) => sum + stat.count, 0);
+      const activeDevices = devices.filter(d => d.status === 'active').length;
+      const totalDevices = devices.length;
+
+      return {
+        time_pattern: Object.values(allDevicesTimePattern).sort((a, b) => a.time_slot - b.time_slot),
+        regional_collection: regionalData,
+        summary: {
+          total_drops: totalDrops,
+          active_devices: activeDevices,
+          total_devices: totalDevices,
+          device_utilization_rate: Math.round((activeDevices / totalDevices) * 100 * 10) / 10
+        },
+        metrics: {
+          complaint_reduction_rate: dummyData.complaint_reduction_rate,
+          device_utilization_rate: dummyData.device_utilization_rate,
+          total_collection_volume: totalDrops,
+          device_status: {
+            active: activeDevices,
+            full: devices.filter(d => d.status === 'full').length,
+            offline: devices.filter(d => d.status === 'offline').length,
+            total: totalDevices
+          }
+        }
+      };
+    } catch (error) {
+      console.error('대시보드 데이터 생성 오류:', error);
+      throw new Error('대시보드 데이터를 생성할 수 없습니다.');
+    }
+  }
+
+  /**
+   * 주요 인사이트 조회
+   * @returns {Promise<Array>} 인사이트 데이터
+   */
+  async getInsights() {
+    try {
+      return this._generateInsightsData();
+    } catch (error) {
+      console.error('인사이트 데이터 생성 오류:', error);
+      throw new Error('인사이트 데이터를 생성할 수 없습니다.');
     }
   }
 }

@@ -173,6 +173,57 @@ class AnalyticsController {
       });
     }
   }
+
+  /**
+   * 개요 페이지용 통합 대시보드 데이터
+   * GET /api/smoke-bin/dashboard/overview
+   */
+  async getDashboardOverview(req, res) {
+    try {
+      const dashboardData = await analyticsService.getDashboardOverview();
+      
+      res.json({
+        success: true,
+        message: '대시보드 개요 데이터를 성공적으로 조회했습니다.',
+        data: dashboardData
+      });
+    } catch (error) {
+      console.error('대시보드 데이터 조회 오류:', error);
+      res.status(500).json({
+        success: false,
+        message: '대시보드 데이터 조회 중 오류가 발생했습니다.',
+        error: 'DASHBOARD_ERROR'
+      });
+    }
+  }
+
+  /**
+   * 주요 인사이트 조회
+   * GET /api/smoke-bin/analytics/insights
+   */
+  async getInsights(req, res) {
+    try {
+      const insights = await analyticsService.getInsights();
+      
+      res.json({
+        success: true,
+        message: '주요 인사이트를 성공적으로 조회했습니다.',
+        data: {
+          insights,
+          total_count: insights.length,
+          high_impact_count: insights.filter(i => i.impact === 'high').length,
+          warning_count: insights.filter(i => i.severity === 'warning').length
+        }
+      });
+    } catch (error) {
+      console.error('인사이트 조회 오류:', error);
+      res.status(500).json({
+        success: false,
+        message: '인사이트 조회 중 오류가 발생했습니다.',
+        error: 'INSIGHTS_ERROR'
+      });
+    }
+  }
 }
 
 module.exports = new AnalyticsController();

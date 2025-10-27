@@ -22,4 +22,9 @@ router.put('/:device_id/status', deviceController.updateDeviceStatus);
 // 장치 통계 조회
 router.get('/:device_id/stats', deviceController.getDeviceStats);
 
+// 시뮬레이션 API
+router.post('/:device_id/simulate/drop', deviceController.simulateDrop);
+router.post('/:device_id/simulate/reset', deviceController.simulateReset);
+router.post('/:device_id/simulate/full', deviceController.simulateFull);
+
 module.exports = router;

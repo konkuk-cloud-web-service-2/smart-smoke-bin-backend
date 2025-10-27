@@ -114,6 +114,148 @@ class DeviceService {
       throw error;
     }
   }
+
+  /**
+   * 꽁초 투입 시뮬레이션
+   * @param {string} deviceId - 장치 ID
+   * @returns {Promise<Object>} 시뮬레이션 결과
+   */
+  async simulateDrop(deviceId) {
+    try {
+      const device = await memoryDatabase.getDevice(deviceId);
+      
+      if (!device) {
+        throw new Error('해당 장치를 찾을 수 없습니다.');
+      }
+
+      if (device.status === 'offline') {
+        throw new Error('오프라인 상태의 장치입니다.');
+      }
+
+      // 투입 수 증가
+      const newLevel = Math.min(device.current_level + 1, device.capacity);
+      const isFull = newLevel >= device.capacity;
+      
+      const updatedDevice = await memoryDatabase.saveDevice({
+        ...device,
+        current_level: newLevel,
+        status: isFull ? 'full' : device.status
+      });
+
+      // 이벤트 기록
+      await memoryDatabase.addEvent({
+        device_id: deviceId,
+        event_type: 'drop',
+        data: JSON.stringify({ simulated: true }),
+        timestamp: new Date().toISOString()
+      });
+
+      // 포화 상태인 경우 포화 이벤트도 기록
+      if (isFull) {
+        await memoryDatabase.addEvent({
+          device_id: deviceId,
+          event_type: 'full',
+          data: JSON.stringify({ simulated: true }),
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return {
+        device_id: deviceId,
+        previous_level: device.current_level,
+        current_level: newLevel,
+        fill_percentage: Math.round((newLevel * 100.0 / device.capacity) * 10) / 10,
+        is_full: isFull,
+        status: updatedDevice.status,
+        simulated: true
+      };
+    } catch (error) {
+      console.error('꽁초 투입 시뮬레이션 오류:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 장치 초기화 시뮬레이션
+   * @param {string} deviceId - 장치 ID
+   * @returns {Promise<Object>} 시뮬레이션 결과
+   */
+  async simulateReset(deviceId) {
+    try {
+      const device = await memoryDatabase.getDevice(deviceId);
+      
+      if (!device) {
+        throw new Error('해당 장치를 찾을 수 없습니다.');
+      }
+
+      const updatedDevice = await memoryDatabase.saveDevice({
+        ...device,
+        current_level: 0,
+        status: 'active'
+      });
+
+      // 초기화 이벤트 기록
+      await memoryDatabase.addEvent({
+        device_id: deviceId,
+        event_type: 'reset',
+        data: JSON.stringify({ simulated: true }),
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        device_id: deviceId,
+        previous_level: device.current_level,
+        current_level: 0,
+        fill_percentage: 0,
+        status: 'active',
+        simulated: true
+      };
+    } catch (error) {
+      console.error('장치 초기화 시뮬레이션 오류:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 포화 상태 설정 시뮬레이션
+   * @param {string} deviceId - 장치 ID
+   * @returns {Promise<Object>} 시뮬레이션 결과
+   */
+  async simulateFull(deviceId) {
+    try {
+      const device = await memoryDatabase.getDevice(deviceId);
+      
+      if (!device) {
+        throw new Error('해당 장치를 찾을 수 없습니다.');
+      }
+
+      const updatedDevice = await memoryDatabase.saveDevice({
+        ...device,
+        current_level: device.capacity,
+        status: 'full'
+      });
+
+      // 포화 이벤트 기록
+      await memoryDatabase.addEvent({
+        device_id: deviceId,
+        event_type: 'full',
+        data: JSON.stringify({ simulated: true }),
+        timestamp: new Date().toISOString()
+      });
+
+      return {
+        device_id: deviceId,
+        previous_level: device.current_level,
+        current_level: device.capacity,
+        fill_percentage: 100,
+        status: 'full',
+        simulated: true
+      };
+    } catch (error) {
+      console.error('포화 상태 설정 시뮬레이션 오류:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new DeviceService();
