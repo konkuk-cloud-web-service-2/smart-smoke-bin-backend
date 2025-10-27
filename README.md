@@ -39,20 +39,24 @@ npm start
   - 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/health`
 
 ### 1. 이벤트 호출 API (하드웨어→서버)
-**POST** `/api/smoke-bin/events`
+**POST** `/devices/{device_id}/events`
 
 하드웨어에서 발생하는 이벤트를 서버로 전송합니다.
+
+- 로컬: `http://localhost:3000/devices/{device_id}/events`
+- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}/events`
 
 **Request Body:**
 ```json
 {
-  "device_id": "SB001",
   "event_type": "drop",
   "data": {
     "sensor_data": "motion_detected"
   }
 }
 ```
+
+**Note:** `device_id`는 URL 파라미터로 전달됩니다.
 
 **Event Types:**
 - `drop`: 담배꽁초 투입
@@ -76,9 +80,12 @@ npm start
 ```
 
 ### 2. 장치 리스트 조회 API
-**GET** `/api/smoke-bin/devices`
+**GET** `/devices`
 
 모든 스모크 빈 장치의 목록을 조회합니다.
+
+- 로컬: `http://localhost:3000/devices`
+- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices`
 
 **Response:**
 ```json
@@ -103,9 +110,12 @@ npm start
 ```
 
 ### 3. 장치 상세 현황 조회 API
-**GET** `/api/smoke-bin/devices/:device_id`
+**GET** `/devices/{device_id}`
 
 특정 장치의 상세 정보를 조회합니다.
+
+- 로컬: `http://localhost:3000/devices/{device_id}`
+- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}`
 
 **Response:**
 ```json
@@ -134,9 +144,12 @@ npm start
 ```
 
 ### 4. 30분 사용현황 로그 조회 API
-**GET** `/api/smoke-bin/devices/:device_id/usage-logs?period=24h`
+**GET** `/devices/{device_id}/series/usage?period=24h`
 
 특정 장치의 사용현황을 30분 단위로 조회합니다.
+
+- 로컬: `http://localhost:3000/devices/{device_id}/series/usage`
+- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}/series/usage`
 
 **Query Parameters:**
 - `period`: 조회 기간 (`24h`, `7d`, `30d`)
@@ -164,9 +177,12 @@ npm start
 ```
 
 ### 5. 장치 상태 업데이트 API (관리용)
-**PUT** `/api/smoke-bin/devices/:device_id/status`
+**PUT** `/devices/{device_id}/status`
 
 장치의 상태를 업데이트합니다.
+
+- 로컬: `http://localhost:3000/devices/{device_id}/status`
+- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}/status`
 
 **Request Body:**
 ```json

@@ -3,8 +3,8 @@ const axios = require('axios');
 // 환경에 따른 URL 설정
 const ENVIRONMENT = process.env.TEST_ENV || 'local';
 const BASE_URLS = {
-  local: 'http://localhost:3000/api/smoke-bin',
-  production: 'http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/smoke-bin'
+  local: 'http://localhost:3000',
+  production: 'http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com'
 };
 
 const BASE_URL = BASE_URLS[ENVIRONMENT];
@@ -21,24 +21,21 @@ const testEventAPI = async () => {
   
   try {
     // drop 이벤트 테스트
-    const dropEvent = await axios.post(`${BASE_URL}/events`, {
-      device_id: 'SB001',
+    const dropEvent = await axios.post(`${BASE_URL}/devices/SB001/events`, {
       event_type: 'drop',
       data: { sensor_data: 'motion_detected' }
     });
     console.log('✅ Drop 이벤트 성공:', dropEvent.data);
 
     // full 이벤트 테스트
-    const fullEvent = await axios.post(`${BASE_URL}/events`, {
-      device_id: 'SB002',
+    const fullEvent = await axios.post(`${BASE_URL}/devices/SB002/events`, {
       event_type: 'full',
       data: { capacity_reached: true }
     });
     console.log('✅ Full 이벤트 성공:', fullEvent.data);
 
     // maintenance 이벤트 테스트
-    const maintenanceEvent = await axios.post(`${BASE_URL}/events`, {
-      device_id: 'SB003',
+    const maintenanceEvent = await axios.post(`${BASE_URL}/devices/SB003/events`, {
       event_type: 'maintenance',
       data: { maintenance_type: 'scheduled' }
     });
@@ -53,7 +50,9 @@ const testDeviceListAPI = async () => {
   console.log('\n=== 2. 장치 리스트 조회 API 테스트 ===');
   
   try {
-    const response = await axios.get(`${BASE_URL}/devices`);
+    const response = await axios.get(`${BASE_URL}/devices`, {
+      headers: { 'Accept': 'application/json' }
+    });
     console.log('✅ 장치 목록 조회 성공:');
     console.log(JSON.stringify(response.data, null, 2));
   } catch (error) {
@@ -77,7 +76,7 @@ const testUsageLogsAPI = async () => {
   console.log('\n=== 4. 30분 사용현황 로그 조회 API 테스트 ===');
   
   try {
-    const response = await axios.get(`${BASE_URL}/devices/SB001/usage-logs?period=24h`);
+    const response = await axios.get(`${BASE_URL}/devices/SB001/series/usage?period=24h`);
     console.log('✅ 사용현황 로그 조회 성공:');
     console.log(JSON.stringify(response.data, null, 2));
   } catch (error) {
