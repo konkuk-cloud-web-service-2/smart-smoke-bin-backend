@@ -125,7 +125,76 @@ http://localhost:3000/api/smoke-bin
 
 ---
 
-## 3. 지역별 수거량 분석
+## 3. 전체 장치 시간대별 사용 패턴 분석
+
+### GET /analytics/all-devices-time-pattern
+전체 장치들의 시간대별 사용 패턴을 3시간 텀으로 분석합니다.
+
+**쿼리 매개변수:**
+- `period` (string, 선택): 분석 기간 (today, 24h, 7d, 30d, 기본값: 7d)
+
+**응답 예시:**
+```json
+{
+  "success": true,
+  "message": "전체 장치의 시간대별 사용 패턴을 성공적으로 조회했습니다.",
+  "data": {
+    "period": "7d",
+    "total_devices": 5,
+    "time_pattern": [
+      {
+        "time_slot": 0,
+        "total_drops": 0,
+        "total_full_events": 0,
+        "device_count": 0,
+        "label": "00:00-03:00",
+        "avg_drops_per_device": 0,
+        "avg_full_events_per_device": 0
+      },
+      {
+        "time_slot": 3,
+        "total_drops": 1,
+        "total_full_events": 0,
+        "device_count": 2,
+        "label": "03:00-06:00",
+        "avg_drops_per_device": 0.5,
+        "avg_full_events_per_device": 0
+      }
+      // ... 3시간 텀별 데이터 (00, 03, 06, 09, 12, 15, 18, 21)
+    ],
+    "peak_time_slot": {
+      "time_slot": 3,
+      "label": "03:00-06:00",
+      "total_drops": 1,
+      "device_count": 2,
+      "avg_drops_per_device": 0.5
+    },
+    "total_drops": 2,
+    "summary": {
+      "most_active_time": {
+        "time_slot": 3,
+        "label": "03:00-06:00",
+        "total_drops": 1,
+        "device_count": 2,
+        "avg_drops_per_device": 0.5
+      },
+      "least_active_time": {
+        "time_slot": 0,
+        "label": "00:00-03:00",
+        "total_drops": 0,
+        "device_count": 0,
+        "avg_drops_per_device": 0
+      },
+      "peak_drops": 1,
+      "total_periods": 8
+    }
+  }
+}
+```
+
+---
+
+## 4. 지역별 수거량 분석
 
 ### GET /analytics/regional
 구 단위로 그룹화된 지역별 수거량을 분석합니다.
@@ -176,7 +245,7 @@ http://localhost:3000/api/smoke-bin
 
 ---
 
-## 4. 30분 사용현황 로그 조회
+## 5. 30분 사용현황 로그 조회
 
 ### GET /devices/:device_id/usage-logs
 특정 장치의 30분 단위 사용현황 로그를 조회합니다.
@@ -212,7 +281,7 @@ http://localhost:3000/api/smoke-bin
 
 ---
 
-## 5. 주간 사용률 분석
+## 6. 주간 사용률 분석
 
 ### GET /devices/:device_id/weekly-usage
 특정 장치의 주간 사용률을 분석합니다.
@@ -237,7 +306,7 @@ http://localhost:3000/api/smoke-bin
 
 ---
 
-## 6. 일 평균 수거량 조회
+## 7. 일 평균 수거량 조회
 
 ### GET /devices/:device_id/daily-average
 특정 장치의 일 평균 수거량을 계산합니다.
@@ -263,7 +332,7 @@ http://localhost:3000/api/smoke-bin
 
 ---
 
-## 7. 주요 인사이트 조회
+## 8. 주요 인사이트 조회
 
 ### GET /analytics/insights
 분석 페이지용 주요 인사이트 데이터를 조회합니다.
@@ -315,7 +384,7 @@ http://localhost:3000/api/smoke-bin
 
 ---
 
-## 8. 인터페이스 시뮬레이션 API
+## 9. 인터페이스 시뮬레이션 API
 
 ### POST /devices/:device_id/simulate/drop
 꽁초 투입 시뮬레이션을 실행합니다.
