@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const deviceController = require('../modules/device/deviceController');
+const analyticsController = require('../modules/analytics/analyticsController');
 
 /**
  * 장치 관리 라우터
@@ -26,5 +27,10 @@ router.get('/:device_id/stats', deviceController.getDeviceStats);
 router.post('/:device_id/simulate/drop', deviceController.simulateDrop);
 router.post('/:device_id/simulate/reset', deviceController.simulateReset);
 router.post('/:device_id/simulate/full', deviceController.simulateFull);
+
+// 장치 관련 분석 API
+router.get('/:device_id/usage-logs', analyticsController.getUsageLogs);
+router.get('/:device_id/weekly-usage', analyticsController.getWeeklyUsage);
+router.get('/:device_id/daily-average', analyticsController.getDailyAverage);
 
 module.exports = router;

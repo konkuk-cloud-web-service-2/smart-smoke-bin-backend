@@ -54,8 +54,8 @@ app.use('/api', healthRouter);
 app.use('/', smokeBinRouter); // smokeBinRouter가 /devices 경로를 처리
 app.use('/kpi', kpiRouter);
 app.use('/datasets', datasetsRouter);
-app.use('/api/smoke-bin', analyticsRouter); // analytics 라우터 추가
-app.use('/api/smoke-bin/devices', deviceRouter); // device 라우터 추가
+app.use('/', analyticsRouter); // analytics 라우터를 루트 경로로 변경
+app.use('/devices', deviceRouter); // device 라우터를 /devices 경로로 변경
 
 // 에러 핸들러 (라우터보다 나중에 설정)
 app.use('*', notFound);

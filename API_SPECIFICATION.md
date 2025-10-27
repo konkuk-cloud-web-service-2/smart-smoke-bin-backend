@@ -5,8 +5,8 @@
 
 ## Base URL
 ```
-로컬 환경: http://localhost:3000/api/smoke-bin
-AWS EB 환경: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/smoke-bin
+로컬 환경: http://localhost:3000
+AWS EB 환경: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com
 ```
 
 ---
@@ -18,8 +18,8 @@ AWS EB 환경: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeansta
 
 **요청 예시:**
 ```
-로컬: GET http://localhost:3000/api/smoke-bin/dashboard/overview
-AWS:  GET http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/smoke-bin/dashboard/overview
+로컬: GET http://localhost:3000/dashboard/overview
+AWS:  GET http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/dashboard/overview
 ```
 
 **응답 예시:**
