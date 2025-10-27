@@ -10,11 +10,18 @@ class AnalyticsService {
    * 30분 단위 사용현황 로그 조회
    * @param {string} deviceId - 장치 ID
    * @param {string} period - 기간 (today, 24h, 7d, 30d)
-   * @returns {Promise<Array>} 사용현황 로그
+   * @returns {Promise<Object>} 사용현황 로그
    */
   async getUsageLogs(deviceId, period = 'today') {
     try {
-      return await memoryDatabase.getUsageLogs(deviceId, period);
+      // return await memoryDatabase.getUsageLogs(deviceId, period);
+      const logs = await memoryDatabase.getUsageLogs(deviceId, period);
+      const summary = memoryDatabase.getDeviceUsageSummary(deviceId);
+
+      return {
+        logs,
+        summary
+      };
     } catch (error) {
       console.error('사용현황 로그 조회 오류:', error);
       throw new Error('사용현황 로그를 조회할 수 없습니다.');
@@ -29,7 +36,7 @@ class AnalyticsService {
    */
   async getHourlyUsagePattern(deviceId, period = '7d') {
     try {
-      const logs = await this.getUsageLogs(deviceId, period);
+      const {logs, summary} = await this.getUsageLogs(deviceId, period);
       
       // 3시간 텀으로 그룹화 (00, 03, 06, 09, 12, 15, 18, 21)
       const timeSlotStats = {};
@@ -62,11 +69,18 @@ class AnalyticsService {
         timeSlotStats[timeSlot].full_events += log.full_events;
       });
 
+      const peakTimeSlot = summary && summary.peak_time_slot
+      ? summary.peak_time_slot.hour
+      : this._findPeakTimeSlot(timeSlotStats);
+
+
       return {
         device_id: deviceId,
         period,
         time_pattern: Object.values(timeSlotStats).sort((a, b) => a.time_slot - b.time_slot),
-        peak_time_slot: this._findPeakTimeSlot(timeSlotStats),
+        // peak_time_slot: this._findPeakTimeSlot(timeSlotStats),
+        peak_time_slot: peakTimeSlot,
+        peak_time_label: summary && summary.peak_time_slot ? summary.peak_time_slot.label : null,
         total_drops: Object.values(timeSlotStats).reduce((sum, stat) => sum + stat.drop_count, 0)
       };
     } catch (error) {
@@ -275,22 +289,35 @@ class AnalyticsService {
    */
   async getWeeklyUsageRate(deviceId) {
     try {
-      const currentWeek = await this.getUsageLogs(deviceId, '7d');
-      const previousWeek = await this.getUsageLogs(deviceId, '7d'); // 이전 주 데이터는 별도 로직 필요
+      // const currentWeek = await this.getUsageLogs(deviceId, '7d');
+      // const previousWeek = await this.getUsageLogs(deviceId, '7d'); // 이전 주 데이터는 별도 로직 필요
       
-      const currentTotal = currentWeek.reduce((sum, log) => sum + log.drop_count, 0);
-      const previousTotal = previousWeek.reduce((sum, log) => sum + log.drop_count, 0);
+      // const currentTotal = currentWeek.reduce((sum, log) => sum + log.drop_count, 0);
+      // const previousTotal = previousWeek.reduce((sum, log) => sum + log.drop_count, 0);
       
-      const growthRate = previousTotal > 0 
-        ? Math.round(((currentTotal - previousTotal) / previousTotal) * 100 * 10) / 10
-        : 0;
+      // const growthRate = previousTotal > 0 
+      //   ? Math.round(((currentTotal - previousTotal) / previousTotal) * 100 * 10) / 10
+      //   : 0;
+      const summary = memoryDatabase.getDeviceUsageSummary(deviceId);
 
+      if (!summary) {
+        return {
+          device_id: deviceId,
+          current_week_drops: 0,
+          previous_week_drops: 0,
+          growth_rate: 0,
+          trend: 'stable'
+        };
+      }
+
+      const { current_week_drops, previous_week_drops, growth_rate } = summary;
+      
       return {
         device_id: deviceId,
-        current_week_drops: currentTotal,
-        previous_week_drops: previousTotal,
-        growth_rate: growthRate,
-        trend: growthRate > 0 ? 'increasing' : growthRate < 0 ? 'decreasing' : 'stable'
+        current_week_drops,
+        previous_week_drops,
+        growth_rate,
+        trend: growth_rate > 0 ? 'increasing' : growth_rate < 0 ? 'decreasing' : 'stable'
       };
     } catch (error) {
       console.error('주간 사용률 분석 오류:', error);
@@ -306,11 +333,24 @@ class AnalyticsService {
    */
   async getDailyAverage(deviceId, period = '7d') {
     try {
-      const logs = await this.getUsageLogs(deviceId, period);
-      const totalDrops = logs.reduce((sum, log) => sum + log.drop_count, 0);
-      const days = period === '7d' ? 7 : period === '30d' ? 30 : 1;
+      // const logs = await this.getUsageLogs(deviceId, period);
+      // const totalDrops = logs.reduce((sum, log) => sum + log.drop_count, 0);
+      // const days = period === '7d' ? 7 : period === '30d' ? 30 : 1;
       
-      return Math.round((totalDrops / days) * 10) / 10;
+      // return Math.round((totalDrops / days) * 10) / 10;
+      const summary = memoryDatabase.getDeviceUsageSummary(deviceId);
+
+      if (!summary) {
+        return 0;
+      }
+
+      if (period === '30d') {
+        // 7일 평균을 기반으로 30일 추정값 계산
+        return Math.round(((summary.daily_average * 30) / 7) * 10) / 10;
+      }
+
+      return summary.daily_average;
+      
     } catch (error) {
       console.error('일 평균 수거량 계산 오류:', error);
       throw new Error('일 평균 수거량을 계산할 수 없습니다.');

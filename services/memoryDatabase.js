@@ -17,6 +17,9 @@ class MemoryDatabase {
       // 사용 로그 저장 (HashMap: device_id -> usage_logs[])
       this.usageLogs = new Map();
       
+      // 장치별 사용 요약 정보 (HashMap: device_id -> usage_summary)
+      this.deviceUsageSummaries = new Map();
+
       // 초기 샘플 데이터 로드
       this.initializeSampleData();
     } catch (error) {
@@ -172,6 +175,15 @@ class MemoryDatabase {
    * @returns {Array} 사용 로그 배열
    */
   getUsageLogs(deviceId, period = 'today') {
+    const normalizedPeriod = typeof period === 'string' ? period.toLowerCase() : period;
+
+    if (
+      this.usageLogs.has(deviceId) &&
+      (normalizedPeriod === '7d' || normalizedPeriod === 'week' || normalizedPeriod === 'weekly')
+    ) {
+      return this.usageLogs.get(deviceId).map(log => ({ ...log }));
+    }
+
     const { startTime, endTime } = this._calculatePeriodTime(period);
     const events = this.getDeviceEvents(
       deviceId, 
@@ -181,6 +193,27 @@ class MemoryDatabase {
     
     return this._groupEventsByPeriod(events, deviceId);
   }
+
+  /**
+   * 장치별 사용 요약 정보 조회
+   * @param {string} deviceId - 장치 ID
+   * @returns {Object|null} 장치 사용 요약 정보
+   */
+  getDeviceUsageSummary(deviceId) {
+    if (!this.deviceUsageSummaries.has(deviceId)) {
+      return null;
+    }
+
+    const summary = { ...this.deviceUsageSummaries.get(deviceId) };
+    const device = this.getDevice(deviceId);
+
+    if (device) {
+      summary.location = device.location;
+    }
+
+    return summary;
+  }
+
 
   /**
    * 기간 계산 헬퍼 메서드
@@ -295,6 +328,7 @@ class MemoryDatabase {
     try {
       this._loadSampleDevices();
       this._loadSampleEvents();
+      this._loadSampleUsageLogs();
       
       console.log('✅ 메모리 데이터베이스 초기화 완료');
       console.log(`📊 장치 ${this.devices.size}개, 이벤트 ${this.events.length}개 로드됨`);
@@ -424,6 +458,127 @@ class MemoryDatabase {
       });
     });
   }
+
+   /**
+   * 샘플 사용 로그 및 요약 데이터 로드
+   * @private
+   */
+   _loadSampleUsageLogs() {
+    const baseDate = moment().utc().subtract(1, 'days').startOf('day');
+
+    const sampleUsage = {
+      SB001: {
+        previousWeekDrops: 2275,
+        timeSlots: [
+          { hour: 0, averageDrops: 18 },
+          { hour: 3, averageDrops: 12 },
+          { hour: 6, averageDrops: 20 },
+          { hour: 9, averageDrops: 153 },
+          { hour: 12, averageDrops: 880 },
+          { hour: 15, averageDrops: 132 },
+          { hour: 18, averageDrops: 600 },
+          { hour: 21, averageDrops: 32 }
+        ]
+      },
+      SB002: {
+        previousWeekDrops: 2057,
+        timeSlots: [
+          { hour: 0, averageDrops: 16 },
+          { hour: 3, averageDrops: 14 },
+          { hour: 6, averageDrops: 26 },
+          { hour: 9, averageDrops: 48 },
+          { hour: 12, averageDrops: 70 },
+          { hour: 15, averageDrops: 62 },
+          { hour: 18, averageDrops: 50 },
+          { hour: 21, averageDrops: 24 }
+        ]
+      },
+      SB003: {
+        previousWeekDrops: 1344,
+        timeSlots: [
+          { hour: 0, averageDrops: 10 },
+          { hour: 3, averageDrops: 8 },
+          { hour: 6, averageDrops: 12 },
+          { hour: 9, averageDrops: 28 },
+          { hour: 12, averageDrops: 40 },
+          { hour: 15, averageDrops: 32 },
+          { hour: 18, averageDrops: 28 },
+          { hour: 21, averageDrops: 22 }
+        ]
+      },
+      SB004: {
+        previousWeekDrops: 480,
+        timeSlots: [
+          { hour: 0, averageDrops: 4 },
+          { hour: 3, averageDrops: 3 },
+          { hour: 6, averageDrops: 53 },
+          { hour: 9, averageDrops: 104 },
+          { hour: 12, averageDrops: 140 },
+          { hour: 15, averageDrops: 120 },
+          { hour: 18, averageDrops: 86 },
+          { hour: 21, averageDrops: 48 }
+        ]
+      },
+      SB005: {
+        previousWeekDrops: 1536,
+        timeSlots: [
+          { hour: 0, averageDrops: 12 },
+          { hour: 3, averageDrops: 10 },
+          { hour: 6, averageDrops: 18 },
+          { hour: 9, averageDrops: 42 },
+          { hour: 12, averageDrops: 60 },
+          { hour: 15, averageDrops: 48 },
+          { hour: 18, averageDrops: 32 },
+          { hour: 21, averageDrops: 18 }
+        ]
+      }
+    };
+
+    Object.entries(sampleUsage).forEach(([deviceId, usageData]) => {
+      const logs = usageData.timeSlots.map(slot => {
+        const periodStart = baseDate.clone().add(slot.hour, 'hours');
+        const periodEnd = periodStart.clone().add(2, 'hours').add(59, 'minutes').add(59, 'seconds');
+        const weeklyTotal = slot.averageDrops * 7;
+
+        return {
+          device_id: deviceId,
+          period_start: periodStart.toISOString(),
+          period_end: periodEnd.toISOString(),
+          time_slot: slot.hour,
+          label: `${slot.hour.toString().padStart(2, '0')}:00`,
+          average_total_drops: slot.averageDrops,
+          weekly_total_drops: weeklyTotal,
+          drop_count: slot.averageDrops,
+          full_events: 0
+        };
+      });
+
+      const dailyAverage = logs.reduce((sum, log) => sum + log.average_total_drops, 0);
+      const currentWeekDrops = dailyAverage * 7;
+      const previousWeekDrops = usageData.previousWeekDrops;
+      const growthRate = previousWeekDrops > 0
+        ? Math.round(((currentWeekDrops - previousWeekDrops) / previousWeekDrops) * 1000) / 10
+        : 0;
+      const peakLog = logs.reduce((prev, curr) =>
+        curr.average_total_drops > prev.average_total_drops ? curr : prev
+      );
+
+      this.usageLogs.set(deviceId, logs);
+      this.deviceUsageSummaries.set(deviceId, {
+        device_id: deviceId,
+        location: null,
+        daily_average: Math.round(dailyAverage * 10) / 10,
+        current_week_drops: Math.round(currentWeekDrops),
+        previous_week_drops: Math.round(previousWeekDrops),
+        growth_rate: growthRate,
+        peak_time_slot: {
+          hour: peakLog.time_slot,
+          label: peakLog.label
+        }
+      });
+    });
+  }
+
 
   // ==================== 통계 정보 ====================
 

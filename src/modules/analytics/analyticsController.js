@@ -12,9 +12,9 @@ class AnalyticsController {
   async getUsageLogs(req, res) {
     try {
       const { device_id } = req.params;
-      const { period = 'today' } = req.query;
+      const { period = '7d' } = req.query;
       
-      const logs = await analyticsService.getUsageLogs(device_id, period);
+      const {logs, summary} = await analyticsService.getUsageLogs(device_id, period);
       
       let startTime, endTime;
       const now = require('moment')();
@@ -50,6 +50,16 @@ class AnalyticsController {
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           total_periods: logs.length,
+          location: summary ? summary.location : null,
+          daily_average: summary ? summary.daily_average : null,
+          peak_time_slot: summary && summary.peak_time_slot ? summary.peak_time_slot.label : null,
+          weekly_usage: summary
+            ? {
+                current_week_drops: summary.current_week_drops,
+                previous_week_drops: summary.previous_week_drops,
+                growth_rate: summary.growth_rate
+              }
+            : null,
           logs
         }
       });
