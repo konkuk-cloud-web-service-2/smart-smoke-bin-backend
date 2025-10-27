@@ -101,46 +101,11 @@ class AnalyticsService {
    */
   async getRegionalAnalysis(period = '7d') {
     try {
-      const devices = await memoryDatabase.getDevices();
-      const districtStats = {};
-
-      // 구별로 그룹화
-      for (const device of devices) {
-        const logs = await this.getUsageLogs(device.device_id, period);
-        const totalDrops = logs.reduce((sum, log) => sum + log.drop_count, 0);
-        
-        // 위치에서 구 추출 (예: "강남역 2번 출구" -> "강남구")
-        const district = this._extractDistrict(device.location);
-        
-        if (!districtStats[district]) {
-          districtStats[district] = {
-            district_name: district,
-            total_drops: 0,
-            device_count: 0,
-            devices: []
-          };
-        }
-        
-        districtStats[district].total_drops += totalDrops;
-        districtStats[district].device_count += 1;
-        districtStats[district].devices.push({
-          device_id: device.device_id,
-          location: device.location,
-          drops: totalDrops,
-          status: device.status
-        });
-      }
-
-      // 구별 통계를 배열로 변환하고 정렬
-      const regionalStats = Object.values(districtStats).map(district => ({
-        district_name: district.district_name,
-        total_drops: district.total_drops,
-        device_count: district.device_count,
-        avg_drops_per_device: Math.round(district.total_drops / district.device_count * 10) / 10,
-        devices: district.devices
-      }));
-
-      return regionalStats.sort((a, b) => b.total_drops - a.total_drops);
+      // 더미 데이터 생성
+      const dummyData = this._generateDummyMetrics();
+      
+      // 지역별 더미 데이터 반환
+      return this._generateRegionalDummyData(dummyData.regional_dummy);
     } catch (error) {
       console.error('지역별 분석 오류:', error);
       throw new Error('지역별 수거량을 분석할 수 없습니다.');
@@ -196,7 +161,7 @@ class AnalyticsService {
         trend: 'increasing'
       },
       // 시간대별 사용 패턴 더미 데이터 (3시간 텀 순서: 00, 03, 06, 09, 12, 15, 18, 21)
-      time_pattern_dummy: [45, 23, 67, 189, 312, 267, 234, 156],
+      time_pattern_dummy: [450, 230, 670, 1890, 3120, 2670, 2340, 1560],
       // 지역별 수거량 더미 데이터 (강남구, 서초구, 송파구, 마포구, 용산구)
       regional_dummy: [4234, 3891, 3456, 2987, 2654]
     };
@@ -420,58 +385,24 @@ class AnalyticsService {
     try {
       const devices = await memoryDatabase.getDevices();
       
+      // 더미 데이터 생성
+      const dummyData = this._generateDummyMetrics();
+      
       // 3시간 텀으로 그룹화 (00, 03, 06, 09, 12, 15, 18, 21)
       const timeSlotStats = {};
       const timeSlots = [0, 3, 6, 9, 12, 15, 18, 21];
       
-      // 초기화
-      timeSlots.forEach(slot => {
+      // 더미 데이터로 초기화
+      timeSlots.forEach((slot, index) => {
         timeSlotStats[slot] = { 
           time_slot: slot, 
-          total_drops: 0, 
-          total_full_events: 0,
-          device_count: 0,
-          label: `${slot.toString().padStart(2, '0')}:00-${(slot + 3).toString().padStart(2, '0')}:00`
+          total_drops: dummyData.time_pattern_dummy[index], 
+          total_full_events: Math.floor(dummyData.time_pattern_dummy[index] / 100), // 포화 이벤트는 투입량의 1%로 설정
+          device_count: devices.length,
+          label: `${slot.toString().padStart(2, '0')}:00-${(slot + 3).toString().padStart(2, '0')}:00`,
+          avg_drops_per_device: Math.round((dummyData.time_pattern_dummy[index] / devices.length) * 10) / 10,
+          avg_full_events_per_device: Math.round((Math.floor(dummyData.time_pattern_dummy[index] / 100) / devices.length) * 10) / 10
         };
-      });
-      
-      // 모든 장치의 데이터를 집계
-      for (const device of devices) {
-        try {
-          const logs = await this.getUsageLogs(device.device_id, period);
-          
-          logs.forEach(log => {
-            const hour = moment(log.period_start).hour();
-            // 시간을 3시간 텀으로 매핑
-            let timeSlot;
-            if (hour >= 0 && hour < 3) timeSlot = 0;
-            else if (hour >= 3 && hour < 6) timeSlot = 3;
-            else if (hour >= 6 && hour < 9) timeSlot = 6;
-            else if (hour >= 9 && hour < 12) timeSlot = 9;
-            else if (hour >= 12 && hour < 15) timeSlot = 12;
-            else if (hour >= 15 && hour < 18) timeSlot = 15;
-            else if (hour >= 18 && hour < 21) timeSlot = 18;
-            else timeSlot = 21;
-            
-            timeSlotStats[timeSlot].total_drops += log.drop_count;
-            timeSlotStats[timeSlot].total_full_events += log.full_events;
-            timeSlotStats[timeSlot].device_count += 1;
-          });
-        } catch (error) {
-          console.warn(`장치 ${device.device_id}의 데이터 조회 실패:`, error.message);
-          // 개별 장치 오류는 무시하고 계속 진행
-        }
-      }
-
-      // 시간대별 평균 계산
-      Object.values(timeSlotStats).forEach(stat => {
-        if (stat.device_count > 0) {
-          stat.avg_drops_per_device = Math.round((stat.total_drops / stat.device_count) * 10) / 10;
-          stat.avg_full_events_per_device = Math.round((stat.total_full_events / stat.device_count) * 10) / 10;
-        } else {
-          stat.avg_drops_per_device = 0;
-          stat.avg_full_events_per_device = 0;
-        }
       });
 
       const timePattern = Object.values(timeSlotStats).sort((a, b) => a.time_slot - b.time_slot);
