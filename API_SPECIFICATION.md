@@ -92,7 +92,7 @@ AWS:  GET http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.co
 
 ## 2. 시간대별 사용 패턴 분석
 
-### GET /analytics/usage-pattern
+### GET /analytics/usage-logs
 특정 장치의 시간대별 사용 패턴을 3시간 텀으로 분석합니다.
 
 **경로 매개변수:**
