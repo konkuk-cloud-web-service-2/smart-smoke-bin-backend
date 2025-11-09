@@ -61,7 +61,10 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 
-# Elastic Beanstalk Files
+# AWS SAM
+.aws-sam/
+
+# Elastic Beanstalk Files (Legacy)
 .elasticbeanstalk/*
 !.elasticbeanstalk/config.yml
 !.elasticbeanstalk/*.cfg.yml

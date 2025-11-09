@@ -1,4 +1,4 @@
-name: Deploy to Elastic Beanstalk
+name: Deploy to AWS Lambda (SAM)
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           echo "✅ 서버 시작 성공"
 
   deploy:
-    name: Deploy to EB
+    name: Deploy to Lambda
     needs: check
     runs-on: ubuntu-latest
     
@@ -39,28 +39,40 @@ jobs:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
       
-      - name: 배포 패키지 생성
-        run: |
-          zip -r deploy.zip . \
-            -x '*.git*' \
-            -x '*node_modules*' \
-            -x '*.github*' \
-            -x '*data/*' \
-            -x '*database/*'
-      
-      - name: Elastic Beanstalk 배포
-        uses: einaregilsson/beanstalk-deploy@v22
+      - name: Python 설정 (SAM CLI용)
+        uses: actions/setup-python@v4
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: smart-smoke-bin
-          environment_name: smart-smoke-env
-          version_label: ${{ github.sha }}
-          version_description: ${{ github.event.head_commit.message }}
-          region: ap-northeast-2
-          deployment_package: deploy.zip
-          wait_for_deployment: true
+          python-version: '3.11'
       
-      - name: 배포 완료
-        run: echo "✅ 배포 완료! http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/"
-
+      - name: SAM CLI 설치
+        run: |
+          pip install aws-sam-cli
+          sam --version
+      
+      - name: AWS 자격증명 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+      
+      - name: SAM 빌드
+        run: sam build
+      
+      - name: SAM 배포
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name smart-smoke-bin \
+            --capabilities CAPABILITY_IAM \
+            --region ap-northeast-2
+      
+      - name: API Gateway URL 출력
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name smart-smoke-bin \
+            --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
+            --output text \
+            --region ap-northeast-2)
+          echo "✅ 배포 완료! $API_URL"

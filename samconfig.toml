@@ -1,0 +1,12 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "smart-smoke-bin"
+resolve_s3 = true
+s3_prefix = "smart-smoke-bin"
+region = "ap-northeast-2"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+
+[default.global.parameters]
+region = "ap-northeast-2"
