@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const memoryDatabase = require('../services/memoryDatabase');
+const mongoDatabase = require('../services/mongoDatabase');
 const moment = require('moment');
 
 // 상수 정의
@@ -39,7 +39,7 @@ const validateEventRequest = (req, res, next) => {
  * 장치 존재 여부 확인
  */
 const checkDeviceExists = async (deviceId, res) => {
-  const device = await memoryDatabase.getDevice(deviceId);
+  const device = await mongoDatabase.getDevice(deviceId);
   
   if (!device) {
     return res.status(404).json({
@@ -56,17 +56,17 @@ const checkDeviceExists = async (deviceId, res) => {
  * 이벤트 타입에 따른 장치 상태 업데이트
  */
 const updateDeviceByEvent = async (eventType, deviceId) => {
-  const device = await memoryDatabase.getDevice(deviceId);
+  const device = await mongoDatabase.getDevice(deviceId);
   
   if (!device) return;
 
   if (eventType === 'drop') {
-    await memoryDatabase.saveDevice({
+    await mongoDatabase.saveDevice({
       ...device,
       current_level: Math.min(device.current_level + 1, device.capacity)
     });
   } else if (eventType === 'full') {
-    await memoryDatabase.saveDevice({
+    await mongoDatabase.saveDevice({
       ...device,
       current_level: device.capacity
     });
@@ -92,7 +92,7 @@ router.post('/devices/:device_id/events', validateEventRequest, async (req, res)
 
   try {
     // 이벤트 저장
-    const event = await memoryDatabase.saveEvent({
+    const event = await mongoDatabase.saveEvent({
       device_id,
       event_type,
       data
@@ -122,7 +122,7 @@ router.post('/devices/:device_id/events', validateEventRequest, async (req, res)
  */
 router.get('/devices', async (req, res) => {
   try {
-    const devices = await memoryDatabase.getDevices();
+    const devices = await mongoDatabase.getDevices();
     
     // fill_percentage 계산
     const devicesWithPercentage = devices.map(device => ({
@@ -158,10 +158,10 @@ router.get('/devices/:device_id', async (req, res) => {
     if (!device) return; // checkDeviceExists에서 이미 응답을 보냄
     
     // 오늘의 투입 수 조회
-    const todayDrops = await memoryDatabase.getTodayDrops(device_id);
+    const todayDrops = await mongoDatabase.getTodayDrops(device_id);
     
     // 가득참 이력 조회 (최근 10개)
-    const fullHistory = await memoryDatabase.getFullHistory(device_id, 10);
+    const fullHistory = await mongoDatabase.getFullHistory(device_id, 10);
 
     res.json({
       success: true,
@@ -192,7 +192,7 @@ router.get('/devices/:device_id/series/usage', async (req, res) => {
   const { period = '24h' } = req.query; // 24h, 7d, 30d
 
   try {
-    const logs = await memoryDatabase.getUsageLogs(device_id, period);
+    const logs = await mongoDatabase.getUsageLogs(device_id, period);
     
     const now = moment();
     let startTime;
@@ -252,7 +252,7 @@ router.put('/devices/:device_id/status', async (req, res) => {
     const device = await checkDeviceExists(device_id, res);
     if (!device) return; // checkDeviceExists에서 이미 응답을 보냄
 
-    const updatedDevice = await memoryDatabase.saveDevice({
+    const updatedDevice = await mongoDatabase.saveDevice({
       ...device,
       status
     });

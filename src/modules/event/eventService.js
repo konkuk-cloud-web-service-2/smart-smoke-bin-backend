@@ -1,4 +1,4 @@
-const memoryDatabase = require('../../../services/memoryDatabase');
+const mongoDatabase = require('../../../services/mongoDatabase');
 
 /**
  * 이벤트 처리 서비스
@@ -15,7 +15,7 @@ class EventService {
       const { device_id, event_type, data } = eventData;
 
       // 이벤트 저장
-      const event = await memoryDatabase.saveEvent({
+      const event = await mongoDatabase.saveEvent({
         device_id,
         event_type,
         data
@@ -38,7 +38,7 @@ class EventService {
    */
   async _handleEventPostProcessing(deviceId, eventType) {
     try {
-      const device = await memoryDatabase.getDevice(deviceId);
+      const device = await mongoDatabase.getDevice(deviceId);
       
       if (!device) {
         console.warn(`장치 ${deviceId}를 찾을 수 없습니다.`);
@@ -48,7 +48,7 @@ class EventService {
       switch (eventType) {
         case 'drop':
           // drop 이벤트인 경우 장치 레벨 증가
-          await memoryDatabase.saveDevice({
+          await mongoDatabase.saveDevice({
             ...device,
             current_level: Math.min(device.current_level + 1, device.capacity)
           });
@@ -56,7 +56,7 @@ class EventService {
           
         case 'full':
           // full 이벤트인 경우 장치 레벨을 capacity로 설정
-          await memoryDatabase.saveDevice({
+          await mongoDatabase.saveDevice({
             ...device,
             current_level: device.capacity
           });
@@ -64,7 +64,7 @@ class EventService {
           
         case 'maintenance':
           // maintenance 이벤트인 경우 상태 변경
-          await memoryDatabase.saveDevice({
+          await mongoDatabase.saveDevice({
             ...device,
             status: 'maintenance'
           });
@@ -72,7 +72,7 @@ class EventService {
           
         case 'offline':
           // offline 이벤트인 경우 상태 변경
-          await memoryDatabase.saveDevice({
+          await mongoDatabase.saveDevice({
             ...device,
             status: 'offline'
           });
@@ -80,7 +80,7 @@ class EventService {
           
         case 'online':
           // online 이벤트인 경우 상태를 active로 변경
-          await memoryDatabase.saveDevice({
+          await mongoDatabase.saveDevice({
             ...device,
             status: 'active'
           });
@@ -100,7 +100,7 @@ class EventService {
    */
   async getDeviceEvents(deviceId, startDate = null, endDate = null) {
     try {
-      return await memoryDatabase.getDeviceEvents(deviceId, startDate, endDate);
+      return await mongoDatabase.getDeviceEvents(deviceId, startDate, endDate);
     } catch (error) {
       console.error('장치 이벤트 조회 오류:', error);
       throw new Error('장치 이벤트를 조회할 수 없습니다.');

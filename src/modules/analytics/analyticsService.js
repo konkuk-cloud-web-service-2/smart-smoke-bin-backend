@@ -1,4 +1,4 @@
-const memoryDatabase = require('../../../services/memoryDatabase');
+const mongoDatabase = require('../../../services/mongoDatabase');
 const moment = require('moment');
 
 /**
@@ -14,9 +14,9 @@ class AnalyticsService {
    */
   async getUsageLogs(deviceId, period = 'today') {
     try {
-      // return await memoryDatabase.getUsageLogs(deviceId, period);
-      const logs = await memoryDatabase.getUsageLogs(deviceId, period);
-      const summary = memoryDatabase.getDeviceUsageSummary(deviceId);
+      // return await mongoDatabase.getUsageLogs(deviceId, period);
+      const logs = await mongoDatabase.getUsageLogs(deviceId, period);
+      const summary = mongoDatabase.getDeviceUsageSummary(deviceId);
 
       return {
         logs,
@@ -298,7 +298,7 @@ class AnalyticsService {
       // const growthRate = previousTotal > 0 
       //   ? Math.round(((currentTotal - previousTotal) / previousTotal) * 100 * 10) / 10
       //   : 0;
-      const summary = memoryDatabase.getDeviceUsageSummary(deviceId);
+      const summary = mongoDatabase.getDeviceUsageSummary(deviceId);
 
       if (!summary) {
         return {
@@ -338,7 +338,7 @@ class AnalyticsService {
       // const days = period === '7d' ? 7 : period === '30d' ? 30 : 1;
       
       // return Math.round((totalDrops / days) * 10) / 10;
-      const summary = memoryDatabase.getDeviceUsageSummary(deviceId);
+      const summary = mongoDatabase.getDeviceUsageSummary(deviceId);
 
       if (!summary) {
         return 0;
@@ -363,7 +363,7 @@ class AnalyticsService {
    */
   async getDashboardOverview() {
     try {
-      const devices = await memoryDatabase.getDevices();
+      const devices = await mongoDatabase.getDevices();
       
       // 더미 데이터 생성
       const dummyData = this._generateDummyMetrics();
@@ -423,7 +423,7 @@ class AnalyticsService {
    */
   async getAllDevicesTimePattern(period = '7d') {
     try {
-      const devices = await memoryDatabase.getDevices();
+      const devices = await mongoDatabase.getDevices();
       
       // 더미 데이터 생성
       const dummyData = this._generateDummyMetrics();

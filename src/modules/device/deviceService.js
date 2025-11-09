@@ -1,4 +1,4 @@
-const memoryDatabase = require('../../../services/memoryDatabase');
+const mongoDatabase = require('../../../services/mongoDatabase');
 
 /**
  * 장치 관리 서비스
@@ -11,7 +11,7 @@ class DeviceService {
    */
   async getAllDevices() {
     try {
-      const devices = memoryDatabase.getAllDevices();
+      const devices = mongoDatabase.getAllDevices();
       
       // 채움률 계산하여 반환
       return devices.map(device => ({
@@ -31,17 +31,17 @@ class DeviceService {
    */
   async getDeviceById(deviceId) {
     try {
-      const device = await memoryDatabase.getDevice(deviceId);
+      const device = await mongoDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
       }
 
       // 오늘의 투입 수 조회
-      const todayDrops = await memoryDatabase.getTodayDrops(deviceId);
+      const todayDrops = await mongoDatabase.getTodayDrops(deviceId);
       
       // 가득참 이력 조회 (최근 10개)
-      const fullHistory = await memoryDatabase.getFullHistory(deviceId, 10);
+      const fullHistory = await mongoDatabase.getFullHistory(deviceId, 10);
 
       return {
         ...device,
@@ -69,13 +69,13 @@ class DeviceService {
         throw new Error('유효하지 않은 상태입니다.');
       }
 
-      const device = await memoryDatabase.getDevice(deviceId);
+      const device = await mongoDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
       }
 
-      const updatedDevice = await memoryDatabase.saveDevice({
+      const updatedDevice = await mongoDatabase.saveDevice({
         ...device,
         status
       });
@@ -99,8 +99,8 @@ class DeviceService {
   async getDeviceStats(deviceId) {
     try {
       const device = await this.getDeviceById(deviceId);
-      const todayDrops = await memoryDatabase.getTodayDrops(deviceId);
-      const fullHistory = await memoryDatabase.getFullHistory(deviceId, 5);
+      const todayDrops = await mongoDatabase.getTodayDrops(deviceId);
+      const fullHistory = await mongoDatabase.getFullHistory(deviceId, 5);
 
       return {
         device_id: deviceId,
@@ -122,7 +122,7 @@ class DeviceService {
    */
   async simulateDrop(deviceId) {
     try {
-      const device = await memoryDatabase.getDevice(deviceId);
+      const device = await mongoDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
@@ -136,14 +136,14 @@ class DeviceService {
       const newLevel = Math.min(device.current_level + 1, device.capacity);
       const isFull = newLevel >= device.capacity;
       
-      const updatedDevice = await memoryDatabase.saveDevice({
+      const updatedDevice = await mongoDatabase.saveDevice({
         ...device,
         current_level: newLevel,
         status: isFull ? 'full' : device.status
       });
 
       // 이벤트 기록
-      await memoryDatabase.addEvent({
+      await mongoDatabase.addEvent({
         device_id: deviceId,
         event_type: 'drop',
         data: JSON.stringify({ simulated: true }),
@@ -152,7 +152,7 @@ class DeviceService {
 
       // 포화 상태인 경우 포화 이벤트도 기록
       if (isFull) {
-        await memoryDatabase.addEvent({
+        await mongoDatabase.addEvent({
           device_id: deviceId,
           event_type: 'full',
           data: JSON.stringify({ simulated: true }),
@@ -182,20 +182,20 @@ class DeviceService {
    */
   async simulateReset(deviceId) {
     try {
-      const device = await memoryDatabase.getDevice(deviceId);
+      const device = await mongoDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
       }
 
-      const updatedDevice = await memoryDatabase.saveDevice({
+      const updatedDevice = await mongoDatabase.saveDevice({
         ...device,
         current_level: 0,
         status: 'active'
       });
 
       // 초기화 이벤트 기록
-      await memoryDatabase.addEvent({
+      await mongoDatabase.addEvent({
         device_id: deviceId,
         event_type: 'reset',
         data: JSON.stringify({ simulated: true }),
@@ -223,20 +223,20 @@ class DeviceService {
    */
   async simulateFull(deviceId) {
     try {
-      const device = await memoryDatabase.getDevice(deviceId);
+      const device = await mongoDatabase.getDevice(deviceId);
       
       if (!device) {
         throw new Error('해당 장치를 찾을 수 없습니다.');
       }
 
-      const updatedDevice = await memoryDatabase.saveDevice({
+      const updatedDevice = await mongoDatabase.saveDevice({
         ...device,
         current_level: device.capacity,
         status: 'full'
       });
 
       // 포화 이벤트 기록
-      await memoryDatabase.addEvent({
+      await mongoDatabase.addEvent({
         device_id: deviceId,
         event_type: 'full',
         data: JSON.stringify({ simulated: true }),

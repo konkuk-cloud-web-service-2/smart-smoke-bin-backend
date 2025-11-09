@@ -2,12 +2,12 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// 메모리 데이터베이스 초기화
-let memoryDatabase;
+// MongoDB 데이터베이스 초기화
+let mongoDatabase;
 try {
-  memoryDatabase = require('./services/memoryDatabase');
+  mongoDatabase = require('./services/mongoDatabase');
 } catch (error) {
-  console.error('❌ 메모리 데이터베이스 로드 실패:', error.message);
+  console.error('❌ MongoDB 데이터베이스 로드 실패:', error.message);
   process.exit(1);
 }
 
@@ -93,16 +93,16 @@ const startServer = async () => {
       process.exit(1);
     }
 
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
       console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
-      console.log(`💾 메모리 데이터베이스로 실행 중입니다.`);
+      console.log(`💾 MongoDB Atlas로 실행 중입니다.`);
       console.log(`📍 API 엔드포인트: http://localhost:${PORT}`);
       
       try {
-        const stats = memoryDatabase.getStats();
+        const stats = await mongoDatabase.getStats();
         console.log(`📊 현재 상태:`, stats);
       } catch (error) {
-        console.error('❌ 메모리 데이터베이스 초기화 오류:', error.message);
+        console.error('❌ MongoDB 데이터베이스 초기화 오류:', error.message);
       }
     });
   } catch (error) {
