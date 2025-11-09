@@ -20,10 +20,11 @@ npm start
 
 ## 🌐 배포 정보
 
-### 프로덕션 환경
-- **배포 URL**: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/
-- **배포 방식**: GitHub Actions + AWS Elastic Beanstalk
+### 프로덕션 환경 (서버리스)
+- **배포 URL**: https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/
+- **배포 방식**: GitHub Actions + AWS SAM (Lambda + API Gateway)
 - **자동 배포**: main 브랜치 push 시 자동 배포
+- **아키텍처**: AWS Lambda (서버리스)
 
 ### 로컬 개발 환경
 서버는 기본적으로 `http://localhost:3000`에서 실행됩니다.
@@ -33,10 +34,10 @@ npm start
 ### 기본 엔드포인트
 - **서버 상태 확인**: `GET /api/ping`
   - 로컬: `http://localhost:3000/api/ping`
-  - 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/ping`
+  - 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/api/ping`
 - **헬스 체크**: `GET /api/health`
   - 로컬: `http://localhost:3000/api/health`
-  - 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/health`
+  - 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/api/health`
 
 ### 1. 이벤트 호출 API (하드웨어→서버)
 **POST** `/devices/{device_id}/events`
@@ -44,7 +45,7 @@ npm start
 하드웨어에서 발생하는 이벤트를 서버로 전송합니다.
 
 - 로컬: `http://localhost:3000/devices/{device_id}/events`
-- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}/events`
+- 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/devices/{device_id}/events`
 
 **Request Body:**
 ```json
@@ -85,7 +86,7 @@ npm start
 모든 스모크 빈 장치의 목록을 조회합니다.
 
 - 로컬: `http://localhost:3000/devices`
-- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices`
+- 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/devices`
 
 **Response:**
 ```json
@@ -115,7 +116,7 @@ npm start
 특정 장치의 상세 정보를 조회합니다.
 
 - 로컬: `http://localhost:3000/devices/{device_id}`
-- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}`
+- 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/devices/{device_id}`
 
 **Response:**
 ```json
@@ -149,7 +150,7 @@ npm start
 특정 장치의 사용현황을 30분 단위로 조회합니다.
 
 - 로컬: `http://localhost:3000/devices/{device_id}/series/usage`
-- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}/series/usage`
+- 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/devices/{device_id}/series/usage`
 
 **Query Parameters:**
 - `period`: 조회 기간 (`24h`, `7d`, `30d`)
@@ -182,7 +183,7 @@ npm start
 장치의 상태를 업데이트합니다.
 
 - 로컬: `http://localhost:3000/devices/{device_id}/status`
-- 프로덕션: `http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/devices/{device_id}/status`
+- 프로덕션: `https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/devices/{device_id}/status`
 
 **Request Body:**
 ```json
@@ -281,13 +282,17 @@ npm start
 
 ## 🚀 배포 정보
 
-### 자동 배포
-- **배포 방식**: GitHub Actions + AWS Elastic Beanstalk
+### 자동 배포 (서버리스)
+- **배포 방식**: GitHub Actions + AWS SAM
+- **아키텍처**: AWS Lambda + API Gateway
 - **트리거**: main 브랜치에 push 시 자동 배포
-- **배포 URL**: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/
+- **배포 URL**: https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/
 
 ### 배포 과정
 1. 코드를 main 브랜치에 push
-2. GitHub Actions이 자동으로 빌드 및 배포
-3. AWS Elastic Beanstalk에서 서비스 시작
-4. 배포 완료 후 URL로 접근 가능
+2. GitHub Actions가 자동으로 SAM 빌드 및 배포
+3. AWS Lambda 함수 업데이트
+4. API Gateway를 통해 즉시 접근 가능
+
+### 상세 배포 가이드
+자세한 배포 방법은 [`deploy.md`](deploy.md) 파일을 참조하세요.

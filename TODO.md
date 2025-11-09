@@ -419,11 +419,6 @@ rm .github/workflows/deploy.yml.bak
   - [ ] API Gateway URL로 교체
   - [ ] 배포 방식 섹션 업데이트 (EB → SAM)
 
-- [ ] `deploy.md` 파일 처리 선택:
-  - 옵션 A: [ ] 파일 삭제
-  - 옵션 B: [ ] SAM 배포 가이드로 전체 교체
-  - 옵션 C: [ ] `deploy-legacy.md`로 이름 변경 (참고용 보관)
-
 #### 4.5 .gitignore 업데이트
 - [ ] `.gitignore` 파일에 다음 추가:
 ```
