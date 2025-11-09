@@ -4,13 +4,13 @@ const axios = require('axios');
 const ENVIRONMENT = process.env.TEST_ENV || 'local';
 const BASE_URLS = {
   local: 'http://localhost:3000',
-  production: 'http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com'
+  production: 'https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod'
 };
 
 const BASE_URL = BASE_URLS[ENVIRONMENT];
 const PING_URL = ENVIRONMENT === 'local' 
   ? 'http://localhost:3000/api/ping'
-  : 'http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/api/ping';
+  : 'https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/api/ping';
 
 console.log(`🧪 테스트 환경: ${ENVIRONMENT}`);
 console.log(`🔗 테스트 URL: ${BASE_URL}`);
