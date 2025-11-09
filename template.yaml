@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  MongoDBConnectionString:
+    Type: String
+    Description: MongoDB Atlas connection string
+    NoEcho: true
+
 Resources:
   SmokeBinApi:
     Type: AWS::Serverless::Function
@@ -9,6 +15,9 @@ Resources:
       Handler: lambda.handler
       MemorySize: 512
       Timeout: 30
+      Environment:
+        Variables:
+          MONGODB_URI: !Ref MongoDBConnectionString
       Events:
         ApiEvent:
           Type: Api
