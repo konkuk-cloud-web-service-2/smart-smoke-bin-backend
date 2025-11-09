@@ -6,7 +6,7 @@
 ## Base URL
 ```
 로컬 환경: http://localhost:3000
-AWS EB 환경: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com
+AWS Lambda 환경: https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod
 ```
 
 ---
@@ -19,7 +19,7 @@ AWS EB 환경: http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeansta
 **요청 예시:**
 ```
 로컬: GET http://localhost:3000/dashboard/overview
-AWS:  GET http://smart-smoke-env.eba-nnpifr7u.ap-northeast-2.elasticbeanstalk.com/dashboard/overview
+AWS:  GET https://u0r3k4is4k.execute-api.ap-northeast-2.amazonaws.com/Prod/dashboard/overview
 ```
 
 **응답 예시:**
