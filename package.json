@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "test": "node test-api.js",
     "test:local": "TEST_ENV=local node test-api.js",
-    "test:production": "TEST_ENV=production node test-api.js"
+    "test:production": "TEST_ENV=production node test-api.js",
+    "seed": "node scripts/seedData.js"
   },
   "keywords": [
     "nodejs",
