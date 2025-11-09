@@ -252,21 +252,28 @@ npm test
 ## 🔧 기술 스택
 
 - **Node.js** + **Express.js**
-- **메모리 데이터베이스** (HashMap/List 기반 인메모리 저장소)
+- **MongoDB Atlas** (서버리스 클라우드 데이터베이스)
+- **Mongoose** (MongoDB ODM)
 - **Moment.js** (날짜/시간 처리)
 - **CORS** (크로스 오리진 지원)
 
 ## ⚙️ 환경 설정
 
-### 메모리 데이터베이스 설정
-현재 프로젝트는 메모리 기반 데이터베이스를 사용합니다. 별도의 데이터베이스 설정이 필요하지 않습니다.
+### MongoDB Atlas 설정
+현재 프로젝트는 MongoDB Atlas 클라우드 데이터베이스를 사용합니다.
 
 ```bash
 # .env 파일 예시
 PORT=3000
 NODE_ENV=development
-DATABASE_TYPE=memory
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.xxxxx.mongodb.net/smart-smoke-bin?retryWrites=true&w=majority
 ```
+
+**MongoDB 연결 문자열 설정:**
+1. MongoDB Atlas에서 클러스터 생성
+2. Database User 생성
+3. Network Access 설정 (0.0.0.0/0 허용)
+4. 연결 문자열을 `.env` 파일에 추가
 
 ### 설치 및 실행
 ```bash

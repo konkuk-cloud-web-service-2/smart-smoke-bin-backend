@@ -6,7 +6,7 @@ const moment = require('moment');
 
 /**
  * MongoDB 기반 데이터베이스
- * memoryDatabase.js와 동일한 인터페이스 제공
+ * MongoDB Atlas를 사용한 영구 데이터 저장소
  */
 class MongoDatabase {
   constructor() {
